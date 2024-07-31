@@ -693,13 +693,15 @@ def get_ce_pe_data(symbol,indexLtp="-"):
 def get_sl_tgt(ltp_price,indicator_strategy):
   target_price=int(float(ltp_price*1.5))
   stop_loss=int(float(ltp_price*0.7))
+  target_price_1=int(float(ltp_price*1.5))
+  stop_loss_1=int(float(ltp_price*0.7))
   try:
     if "(" in indicator_strategy and ")" in indicator_strategy and ":" in indicator_strategy:
       pattern = r"\((\d+):(\d+)\)"
       match = re.search(pattern, indicator_strategy)
       if match:
-        stop_loss=int(match.group(1))
-        target_price=int(match.group(2))
+        stop_loss=max(stop_loss_1,int(match.group(1)))
+        target_price=min(target_price_1,int(match.group(2)))
         return target_price,stop_loss
     elif 'TEMA_EMA_9 Trade' in indicator_strategy:
       target_price=int(ltp_price)+3
@@ -711,8 +713,8 @@ def get_sl_tgt(ltp_price,indicator_strategy):
       multiply=1 if 'OPT' in indicator_strategy else 0.5
       if match:
         atr_value = float(match.group(1))
-        target_price=int(ltp_price+(atr_value*target_point*multiply))
-        stop_loss=int(ltp_price-(atr_value*sl_point*multiply))
+        target_price=min(target_price_1,int(ltp_price+(atr_value*target_point*multiply)))
+        stop_loss=max(stop_loss_1,int(ltp_price-(atr_value*sl_point*multiply)))
         return target_price,stop_loss
       else:
         return target_price,stop_loss
