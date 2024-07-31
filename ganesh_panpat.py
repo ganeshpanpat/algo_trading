@@ -701,8 +701,8 @@ def get_sl_tgt(ltp_price,indicator_strategy):
         target_price=int(match.group(2))
         return target_price,stop_loss
     elif 'TEMA_EMA_9 Trade' in indicator_strategy:
-      target_price=int(ltp_price)+10
-      stop_loss=int(ltp_price)-10
+      target_price=int(ltp_price)+3
+      stop_loss=int(ltp_price)-3
       return target_price,stop_loss
     elif 'ATR' in indicator_strategy and target_type=="ATR":
       pattern = r"ATR:\s*([^ (\n]*)"
