@@ -359,11 +359,12 @@ def angel_data(token,interval,exch_seg,period=5):
     fromdate = from_date.strftime("%Y-%m-%d %H:%M")
     todate = to_date.strftime("%Y-%m-%d %H:%M")
     historicParam={"exchange": exch_seg,"symboltoken": token,"interval": interval,"fromdate": fromdate, "todate": todate}
-    for i in range(0,3):
-      try:
-        res_json=obj.getCandleData(historicParam)
-        break
-      except:time.sleep(1)
+    #for i in range(0,3):
+    #  try:
+    #    res_json=obj.getCandleData(historicParam)
+    #    break
+    #  except:time.sleep(1)
+    res_json=obj.getCandleData(historicParam)
     df = pd.DataFrame(res_json['data'], columns=['timestamp','O','H','L','C','V'])
     df = df.rename(columns={'timestamp':'Datetime','O':'Open','H':'High','L':'Low','C':'Close','V':'Volume'})
     df['Datetime'] = df['Datetime'].apply(lambda x: datetime.datetime.fromisoformat(x))
@@ -1003,7 +1004,7 @@ def sub_loop_code(now_minute):
     if "Multi Time ST Trade" in five_buy_indicator:
       multi_time_frame()
       log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
-    if (now_minute%5==0 and 'GTT:5M' in time_frame_interval):gtt_sub_loop()
+    #if (now_minute%5==0 and 'GTT:5M' in time_frame_interval):gtt_sub_loop()
   except Exception as e:
     logger.info(f"error in sub_loop_code: {e}")
 
