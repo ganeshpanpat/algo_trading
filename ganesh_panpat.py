@@ -1230,10 +1230,10 @@ def trail_sl_with_st(buy_df):
           close=opt_data['Close'].values[-1]
           st_7_3=opt_data['Supertrend'].values[-1]
           st_10_2=opt_data['Supertrend_10_2'].values[-1]
-          if close > st_10_2:
+          if close > st_10_2 and buy_df['SL'].iloc[i] < st_10_2:
             buy_df['SL'].iloc[i]=int(st_10_2)
             buy_df['Sell Indicator'].iloc[i]='SL Trail With ST 10_2'
-          elif close > st_7_3:
+          elif close > st_7_3 and buy_df['SL'].iloc[i] < st_7_3 :
             buy_df['SL'].iloc[i]=int(st_7_3)
             buy_df['Sell Indicator'].iloc[i]='SL Trail With ST 7_3'
           exit_trade=st.session_state['index_trade_end'].get(tradingsymbol+"_"+time_frame)
