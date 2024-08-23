@@ -141,10 +141,9 @@ with tab5:
     with ind_col4:
       st.write('Expiry Dates:')
       st.write(f"Bank Nifty: {st.session_state['bnf_expiry_day']}")
-      st.date_input("BNF Exp",st.session_state['bnf_expiry_day'])
-      st.date_input("NF Exp",st.session_state['nf_expiry_day'])
-      st.date_input("FIN NF Exp",st.session_state['fnnf_expiry_day'])
-      st.date_input("SENSEX Exp",st.session_state['sensex_expiry_day'])
+      st.write(f"Nifty: {st.session_state['nf_expiry_day']}")
+      st.write(f"Fin Nifty: {st.session_state['fnnf_expiry_day']}")
+      st.write(f"SENSEX: {st.session_state['sensex_expiry_day']}")
 with tab6:
     token_df=st.empty()
     token_df=st.dataframe(st.session_state['opt_list'],hide_index=True)
