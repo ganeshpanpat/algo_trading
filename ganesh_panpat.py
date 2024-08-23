@@ -139,6 +139,8 @@ with tab5:
     with ind_col3:
       lots_to_trade=st.number_input(label="Lots To Trade",min_value=1, max_value=10, value=1, step=None)
     with ind_col4:
+      st.write('Expiry Dates:")
+      st.write(f'Bank Nifty: {st.session_state['bnf_expiry_day']}')
       st.date_input("BNF Exp",st.session_state['bnf_expiry_day'])
       st.date_input("NF Exp",st.session_state['nf_expiry_day'])
       st.date_input("FIN NF Exp",st.session_state['fnnf_expiry_day'])
@@ -706,7 +708,7 @@ def get_sl_tgt(ltp_price,indicator_strategy):
         stop_loss=max(stop_loss_1,int(match.group(1)))
         target_price=min(target_price_1,int(match.group(2)))
         return target_price,stop_loss
-    elif 'TEMA_EMA_9 Trade' in indicator_strategy:
+    elif 'TEMA_EMA_9 Trade' in indicator_strategy or 'RSI_WMA_9' in indicator_strategy:
       target_price=int(ltp_price)+3
       stop_loss=int(ltp_price)-10
       return target_price,stop_loss
