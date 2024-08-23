@@ -140,7 +140,7 @@ with tab5:
       lots_to_trade=st.number_input(label="Lots To Trade",min_value=1, max_value=10, value=1, step=None)
     with ind_col4:
       st.write('Expiry Dates:')
-      st.write(f'Bank Nifty: {st.session_state['bnf_expiry_day']}')
+      st.write(f"Bank Nifty: {st.session_state['bnf_expiry_day']}")
       st.date_input("BNF Exp",st.session_state['bnf_expiry_day'])
       st.date_input("NF Exp",st.session_state['nf_expiry_day'])
       st.date_input("FIN NF Exp",st.session_state['fnnf_expiry_day'])
