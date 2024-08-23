@@ -112,7 +112,7 @@ with tab5:
   ind_col1,ind_col2,ind_col3,ind_col4=st.columns([5,1.5,1.5,1.5])
   indicator_list=['TEMA_EMA_9 Trade','ST_7_3 Trade', 'ST_10_2 Trade','ST_10_1 Trade','RSI MA Trade','RSI_60 Trade','MACD Trade','PSAR Trade',
                   'DI Trade','MA Trade','EMA Trade','EMA_5_7 Trade','MA 21 Trade','HMA Trade','RSI_60 Trade','EMA_High_Low Trade',
-                  'Two Candle Theory','Multi Time ST Trade']
+                  'Two Candle Theory','Multi Time ST Trade','RSI_WMA_9 Trade']
   with ind_col1:
     index_list=st.multiselect('Select Index',['NIFTY','BANKNIFTY','SENSEX','FINNIFTY'],['BANKNIFTY', 'NIFTY', 'SENSEX','FINNIFTY'])
     time_frame_interval = st.multiselect('Select Time Frame',['IDX:5M', 'IDX:15M','IDX:1M', 'OPT:5M', 'OPT:1M','GTT:5M'],['IDX:5M','OPT:5M','OPT:1M','GTT:5M'])
