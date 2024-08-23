@@ -573,7 +573,7 @@ def get_trade_info(df):
           df.loc[i, 'TEMA_EMA_9 Trade'] = "Sell"
 
         if int(df.iloc[i]['RSI']) >= 60 and int(df.iloc[i-1]['RSI']) < 60:df.loc[i, 'RSI_60 Trade'] = "Buy"
-        if int(df.iloc[i]['RSI_9']) >=  int(df.iloc[i]['WMA_RSI_9']) and int(df.iloc[i-]['RSI_9']) >=  int(df.iloc[i-1]['WMA_RSI_9']) :df.loc[i, 'RSI_WMA_9 Trade'] = "Buy"
+        if int(df.iloc[i]['RSI_9']) >=  int(df.iloc[i]['WMA_RSI_9']) and int(df.iloc[i-1]['RSI_9']) >=  int(df.iloc[i-1]['WMA_RSI_9']) :df.loc[i, 'RSI_WMA_9 Trade'] = "Buy"
 
         for indicator_trade in indicator_list:
             if df[indicator_trade][i] == "Buy":
