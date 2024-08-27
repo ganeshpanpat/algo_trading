@@ -1130,13 +1130,13 @@ def check_pnl_todays_trade(buy_df):
           f"Profit: {int(buy_df['Profit'].iloc[i])}")
           if int(sl)==0:ltp_price=1;sl=1
           ordertag=f"{ltp_price} : {orderid}"
-          if int(buy_df['LTP'].iloc[i])< int(buy_df['SL'].iloc[i]):
+          if int(buy_df['LTP'].iloc[i])<= int(buy_df['SL'].iloc[i]):
             exit_position(symboltoken,tradingsymbol,exch_seg,qty,ltp_price,sl,ordertag='SL Hit:'+ordertag,producttype='CARRYFORWARD')
             multiline_string = "SL Hit: "+trade_info
             telegram_bot_sendtext(multiline_string)
             buy_df.loc[i,'Status']="SL Hit"
             recheck_todays_trade=True
-          elif int(buy_df['LTP'].iloc[i])> int(buy_df['Target'].iloc[i]):
+          elif int(buy_df['LTP'].iloc[i])>= int(buy_df['Target'].iloc[i]):
             exit_position(symboltoken,tradingsymbol,exch_seg,qty,ltp_price,sl,ordertag='Target Hit:'+ordertag,producttype='CARRYFORWARD')
             multiline_string = "Target Hit: "+trade_info
             telegram_bot_sendtext(multiline_string)
