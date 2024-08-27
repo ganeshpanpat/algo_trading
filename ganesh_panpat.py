@@ -1201,22 +1201,19 @@ def trail_sl_with_st(buy_df):
           symboltoken=buy_df['symboltoken'].iloc[i]
           tradingsymbol=buy_df['tradingsymbol'].iloc[i]
           exch_seg=buy_df['exchange'].iloc[i]
-          if "5m" in buy_df['ordertag'].iloc[i] or "Supertrend" in buy_df['ordertag'].iloc[i]:time_frame="5m"
-          elif "1m" in buy_df['ordertag'].iloc[i]: time_frame="1m"
-          elif "15m" in buy_df['ordertag'].iloc[i]:time_frame="15m"
-          else: time_frame="5m"
-          opt_data=get_historical_data(symbol=tradingsymbol,interval=time_frame,token=symboltoken,exch_seg=exch_seg)
-          close=opt_data['Close'].values[-1]
-          st_7_3=opt_data['Supertrend'].values[-1]
-          st_10_2=opt_data['Supertrend_10_2'].values[-1]
-          if close > st_10_2 and buy_df['SL'].iloc[i] < st_10_2:
-            buy_df['SL'].iloc[i]=int(st_10_2)
-            buy_df['Sell Indicator'].iloc[i]='SL Trail With ST 10_2'
-          elif close > st_7_3 and buy_df['SL'].iloc[i] < st_7_3 :
-            buy_df['SL'].iloc[i]=int(st_7_3)
-            buy_df['Sell Indicator'].iloc[i]='SL Trail With ST 7_3'
-          exit_trade=st.session_state['index_trade_end'].get(tradingsymbol+"_"+time_frame)
-          if exit_trade is not None:st.session_state['index_trade_end'][tradingsymbol+"_"+time_frame] = opt_data['Trade'].values[-1]
+          if "5m" in buy_df['ordertag'].iloc[i] or "Supertrend" in buy_df['ordertag'].iloc[i] or  "15m" in buy_df['ordertag'].iloc[i]:
+            opt_data=get_historical_data(symbol=tradingsymbol,interval=time_frame,token=symboltoken,exch_seg=exch_seg)
+            close=opt_data['Close'].values[-1]
+            st_7_3=opt_data['Supertrend'].values[-1]
+            st_10_2=opt_data['Supertrend_10_2'].values[-1]
+            if close > st_7_3 and buy_df['SL'].iloc[i] < st_7_3 :
+              buy_df['SL'].iloc[i]=int(st_7_3)
+              buy_df['Sell Indicator'].iloc[i]='SL Trail With ST 7_3'
+            elif close > st_10_2 and buy_df['SL'].iloc[i] < st_10_2:
+              buy_df['SL'].iloc[i]=int(st_10_2)
+              buy_df['Sell Indicator'].iloc[i]='SL Trail With ST 10_2'
+            exit_trade=st.session_state['index_trade_end'].get(tradingsymbol+"_"+time_frame)
+            if exit_trade is not None:st.session_state['index_trade_end'][tradingsymbol+"_"+time_frame] = opt_data['Trade'].values[-1]
       except:pass
   return buy_df
 
