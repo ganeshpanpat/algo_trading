@@ -957,35 +957,13 @@ def check_indicator_exit(buy_df,minute):
           symboltoken=buy_df['symboltoken'].iloc[i]
           tradingsymbol=buy_df['tradingsymbol'].iloc[i]
           exch_seg=buy_df['exchange'].iloc[i]
-          qty=buy_df['quantity'].iloc[i]
-          price=buy_df['price'].iloc[i]
-          ltp_price=buy_df['LTP'].iloc[i]
-          orderid=buy_df['orderid'].iloc[i]
           indicator=buy_df['ordertag'].iloc[i]
-          sl=buy_df['LTP'].iloc[i]
-          trade_info = (
-          f"{buy_df['tradingsymbol'].iloc[i]}\n"
-          f"LTP:{buy_df['LTP'].iloc[i]} Target:{buy_df['Target'].iloc[i]} "
-          f"SL:{buy_df['SL'].iloc[i]}\n"
-          f"Price:{buy_df['price'].iloc[i]}\n"
-          f"Time:{buy_df['updatetime'].iloc[i]}\n"
-          f"Indicator: {buy_df['ordertag'].iloc[i]}\n"
-          f"Profit: {int(buy_df['Profit'].iloc[i])}")
-          ordertag=f"{ltp_price} : {orderid}"
-          if minute%15==0 and "15m" in indicator:
-            opt_data=get_historical_data(symbol=tradingsymbol,interval="15m",token=symboltoken,exch_seg=exch_seg,candle_type="NORMAL")
-          elif (minute%5==0 and "5m" in indicator) or "GTT" in indicator:
-            opt_data=get_historical_data(symbol=tradingsymbol,interval="5m",token=symboltoken,exch_seg=exch_seg,candle_type="NORMAL")
-          elif "1m" in indicator or indicator=="Buy:Multi Time Frame ST":
-            opt_data=get_historical_data(symbol=tradingsymbol,interval="1m",token=symboltoken,exch_seg=exch_seg,candle_type="NORMAL")
-          else:
-            opt_data=get_historical_data(symbol=tradingsymbol,interval="5m",token=symboltoken,exch_seg=exch_seg,candle_type="NORMAL")
-          #check for exit
-          if opt_data['ST_7_3 Trade'].values[-1]=="Sell":
-            exit_position(symboltoken,tradingsymbol,exch_seg,qty,ltp_price,sl,ordertag='ST_7_3 Exit:'+ordertag,producttype='CARRYFORWARD')
-            multiline_string = "Indicator Exit: "+trade_info
-            telegram_bot_sendtext(multiline_string)
-            buy_df['Status'].iloc[i]="Indicator Exit"
+          if minute%15==0 and "15m" in indicator: time_frame="15m"
+          elif (minute%5==0 and "5m" in indicator) or "GTT" in indicator:time_frame="5m"
+          elif "1m" in indicator or indicator=="Buy:Multi Time Frame ST":time_frame="1m"
+          else:time_frame="5m"
+          opt_data=get_historical_data(symbol=tradingsymbol,interval=time_frame,token=symboltoken,exch_seg=exch_seg,candle_type="NORMAL")
+          st.session_state['index_trade_end'][tradingsymbol+"_"+time_frame] = opt_data['Trade'].values[-1]
       except Exception as e:
         print(e)
 
@@ -1039,6 +1017,7 @@ def loop_code():
       buy_df=get_todays_trade(orderbook)
       check_pnl_todays_trade(buy_df)
       all_near_options()
+      check_indicator_exit(buy_df,now.minute)
       index_ltp_string.text(f"Index Ltp: {print_ltp()}")
       if datetime.datetime.now(tz=gettz('Asia/Kolkata')) < next_loop:
         while datetime.datetime.now(tz=gettz('Asia/Kolkata')).second< 50:
@@ -1107,6 +1086,7 @@ def recheck_pnl(buy_df):
     now_time=datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)
     todays_trade_updated.text(f"Todays Trade : {now_time} Profit: {int(buy_df['Profit'].sum())} Margin:{margin}")
 
+
 def check_pnl_todays_trade(buy_df):
   if buy_df is None: return None
   recheck_todays_trade=False
@@ -1156,10 +1136,7 @@ def check_pnl_todays_trade(buy_df):
                 buy_df.loc[i,'Status']="Indicaor Exit"
                 recheck_todays_trade=True
             else:
-              opt_data=get_historical_data(symbol=tradingsymbol,interval=time_frame,token=symboltoken,exch_seg=exch_seg)
-              trade=opt_data['Trade'].values[-1]
-              st.session_state['index_trade_end'][tradingsymbol+"_"+time_frame] = trade
-              if trade=="Sell":
+              if st.session_state['index_trade_end'][tradingsymbol+"_"+time_frame]=="Sell":
                 exit_position(symboltoken,tradingsymbol,exch_seg,qty,ltp_price,sl,ordertag='Opt Exit:'+ordertag,producttype='CARRYFORWARD')
                 multiline_string = "OPT Indicaor Exit: "+trade_info
                 telegram_bot_sendtext(multiline_string)
