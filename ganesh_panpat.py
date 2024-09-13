@@ -717,14 +717,14 @@ def get_sl_tgt(ltp_price,indicator_strategy):
       target_price=int(ltp_price)+3
       stop_loss=int(ltp_price)-10
       return target_price,stop_loss
-    elif "High Break" in indicator_strategy and 'ATR' in indicator_strategy:
+    elif "Break" in indicator_strategy and 'ATR' in indicator_strategy:
       pattern = r"ATR:\s*([^ (\n]*)"
       match = re.search(pattern, indicator_strategy)
       multiply=1 if 'OPT' in indicator_strategy else 0.5
       if match:
         atr_value = float(match.group(1))
-        target_price=min(target_price_1,int(ltp_price+(atr_value*target_point*1)))
-        stop_loss=max(stop_loss_1,int(ltp_price-(atr_value*sl_point*1)))
+        target_price=min(target_price_1,int(ltp_price+(atr_value)))
+        stop_loss=max(stop_loss_1,int(ltp_price-(atr_value)))
         return target_price,stop_loss
       else:
         return target_price,stop_loss
