@@ -723,7 +723,7 @@ def get_sl_tgt(ltp_price,indicator_strategy):
       multiply=1 if 'OPT' in indicator_strategy else 0.5
       if match:
         atr_value = float(match.group(1))
-        target_price=min(target_price_1,int(ltp_price+(atr_value)))
+        target_price=min(target_price_1,int(ltp_price+(2*atr_value)))
         stop_loss=max(stop_loss_1,int(ltp_price-(atr_value)))
         return target_price,stop_loss
       else:
