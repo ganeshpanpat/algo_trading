@@ -580,7 +580,7 @@ def get_trade_info(df):
         subset_df =df.iloc[start_index:end_index]
         max_high = subset_df['Close'].max()
         min_low = subset_df['Close'].min()
-        if df.iloc[i]['Close'] >= max_high:df.loc[-1, 'High Break Trade'] = "Buy"
+        if df.iloc[i]['Close'] >= max_high:df.loc[i, 'High Break Trade']='Buy'
 
         for indicator_trade in indicator_list:
             if df[indicator_trade][i] == "Buy":
