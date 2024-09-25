@@ -576,7 +576,7 @@ def get_trade_info(df):
         if int(df.iloc[i]['RSI']) >= 60 and int(df.iloc[i-1]['RSI']) < 60:df.loc[i, 'RSI_60 Trade'] = "Buy"
         if int(df.iloc[i]['RSI_9']) >=  int(df.iloc[i]['WMA_RSI_9']) and int(df.iloc[i-1]['RSI_9']) <=  int(df.iloc[i-1]['WMA_RSI_9']) :df.loc[i, 'RSI_WMA_9 Trade'] = "Buy"
 
-        start_index = -5;end_index = -2
+        start_index = -7;end_index = -2
         subset_df =df.iloc[start_index:end_index]
         max_high = subset_df['Close'].max()
         min_low = subset_df['Close'].min()
