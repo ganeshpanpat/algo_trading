@@ -543,13 +543,14 @@ def get_trade_info(df):
     df['Indicator'] = symbol_type + " " + df['Time Frame']
     df['Trade'] = "-"
     df['Trade End'] = "-"
-
+    sl="-"
     # Ensure that the DataFrame has at least two rows to perform the check
     if len(df) >= 2:
       i = len(df) - 1  # Get the index of the last row
       try:
         if df.iloc[i-1]['Close'] <= df.iloc[i-1]['Supertrend'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend']:
           df.loc[i, 'ST_7_3 Trade'] = "Buy"
+          if symbol_type == "OPT":sl=df.iloc[i]['Supertrend']
         elif df.iloc[i-1]['Close'] >= df.iloc[i-1]['Supertrend'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend']:
           df.loc[i, 'ST_7_3 Trade'] = "Sell"
 
@@ -560,11 +561,14 @@ def get_trade_info(df):
 
         if df.iloc[i-1]['Close'] < df.iloc[i-1]['Supertrend_10_2'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend_10_2']:
           df.loc[i, 'ST_10_2 Trade'] = "Buy"
+          if symbol_type == "OPT":sl=df.iloc[i]['Supertrend_10_2']
         elif df.iloc[i-1]['Close'] > df.iloc[i-1]['Supertrend_10_2'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend_10_2']:
           df.loc[i, 'ST_10_2 Trade'] = "Sell"
 
+
         if df.iloc[i-1]['Close'] < df.iloc[i-1]['Supertrend_10_1'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend_10_1']:
           df.loc[i, 'ST_10_1 Trade'] = "Buy"
+          if symbol_type == "OPT":sl=df.iloc[i]['Supertrend_10_1']
         elif df.iloc[i-1]['Close'] > df.iloc[i-1]['Supertrend_10_1'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend_10_1']:
           df.loc[i, 'ST_10_1 Trade'] = "Sell"
 
@@ -578,6 +582,7 @@ def get_trade_info(df):
 
         if df['Close'][i] > df['Close'][i-1] and df['Close'][i] > df['Close'][i-2] and df['Close'][i] > df['Close'][i-3] and df['Close'][i] > df['Close'][i-4] and df['Close'][i] > df['Close'][i-5]:
           df['High Break Trade'][i] = "Buy"
+          if symbol_type == "OPT":sl=min(df['Close'][i],df['Close'][i-1])
         #elif df['Close'][i] < df['Close'][i-1] and df['Close'][i] < df['Close'][i-2] and df['Close'][i] < df['Close'][i-3] and df['Close'][i] < df['Close'][i-4] and df['Close'][i] < df['Close'][i-5]:
           #df['Signal'][i] = "Sell"
       
@@ -592,6 +597,7 @@ def get_trade_info(df):
                 df.loc[i, 'Trade'] = "Buy"
                 df.loc[i, 'Trade End'] = "Buy"
                 df.loc[i, 'Indicator'] = df['Indicator'][i] + ":" + indicator_trade + ' RSI:' + str(int(df['RSI'][i]))  + ' ATR:' + str(int(df['Atr'][i]))
+                if sl=="-":df.loc[i, 'Indicator']=df['Indicator'][i]+" SL:" +str(sl)
                 break
             elif df[indicator_trade][i] == "Sell":
                 df.loc[i, 'Trade'] = "Sell"
@@ -711,44 +717,30 @@ def get_sl_tgt(ltp_price,indicator_strategy):
   target_price_1=int(float(ltp_price*1.5))
   stop_loss_1=int(float(ltp_price*0.7))
   try:
-    if "(" in indicator_strategy and ")" in indicator_strategy and ":" in indicator_strategy:
-      pattern = r"\((\d+):(\d+)\)"
-      match = re.search(pattern, indicator_strategy)
-      if match:
-        stop_loss=max(stop_loss_1,int(match.group(1)))
-        target_price=min(target_price_1,int(match.group(2)))
+    sl_match=re.search(r'SL:(\d+)',indicator_strategy)
+    tgt_match=re.search(r'TGT:(\d+)',indicator_strategy)
+    atr_match=re.search(r'ATR:(\d+)',indicator_strategy)
+
+    sl_value=sl_match.group(1) if sl_match else None
+    tgt_value=tgt_match.group(1) if tgt_match else None
+    atr_value=atr_match.group(1) if atr_match else None
+
+    if sl_match and tgt_match:
+        target_price=min(target_price_1,int(tgt_value))
+        stop_loss=max(stop_loss_1,int(sl_value))
         return target_price,stop_loss
-    elif 'TEMA_EMA_9 Trade' in indicator_strategy or 'RSI_WMA_9' in indicator_strategy:
-      target_price=int(ltp_price)+3
-      stop_loss=int(ltp_price)-10
-      return target_price,stop_loss
-    elif "Break" in indicator_strategy and 'ATR' in indicator_strategy:
-      pattern = r"ATR:\s*([^ (\n]*)"
-      match = re.search(pattern, indicator_strategy)
-      multiply=1 if 'OPT' in indicator_strategy else 0.5
-      if match:
-        atr_value = float(match.group(1))
+    
+    if atr_match:
         target_price=min(target_price_1,int(ltp_price+(1*atr_value)))
         stop_loss=max(stop_loss_1,int(ltp_price-(atr_value)))
         return target_price,stop_loss
-      else:
-        return target_price,stop_loss
-    elif 'ATR' in indicator_strategy and target_type=="ATR":
-      pattern = r"ATR:\s*([^ (\n]*)"
-      match = re.search(pattern, indicator_strategy)
-      multiply=1 if 'OPT' in indicator_strategy else 0.5
-      if match:
-        atr_value = float(match.group(1))
-        target_price=min(target_price_1,int(ltp_price+(atr_value*target_point*multiply)))
-        stop_loss=max(stop_loss_1,int(ltp_price-(atr_value*sl_point*multiply)))
-        return target_price,stop_loss
-      else:
-        return target_price,stop_loss
-    else:
-      return target_price,stop_loss
+    
+    target_price=int(float(ltp_price*1.5))
+    stop_loss=int(float(ltp_price*0.7))
+    return target_price,stop_loss
   except:
-    target_price=int(ltp_price*1.5)
-    stop_loss=int(ltp_price*0.7)
+    target_price=int(float(ltp_price*1.5))
+    stop_loss=int(float(ltp_price*0.7))
     return target_price,stop_loss
 
 def buy_option(symbol,indicator_strategy="Manual Buy",interval="5m",index_sl="-"):
