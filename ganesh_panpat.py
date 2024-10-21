@@ -714,20 +714,19 @@ def get_ce_pe_data(symbol,indexLtp="-"):
 def get_sl_tgt(ltp_price,indicator_strategy):
   try:
     sl_match=re.search(r'SL:(\d+)',indicator_strategy)
-    tgt_match=re.search(r'TGT:(\d+)',indicator_strategy)
+    #tgt_match=re.search(r'TGT:(\d+)',indicator_strategy)
     atr_match=re.search(r'ATR:(\d+)',indicator_strategy)
 
     sl_value=sl_match.group(1) if sl_match else None
-    tgt_value=tgt_match.group(1) if tgt_match else None
+    #tgt_value=tgt_match.group(1) if tgt_match else None
     atr_value=atr_match.group(1) if atr_match else None
 
     if sl_match:stop_loss=int(sl_value)
     elif atr_match:stop_loss=int(float(ltp_price)-(1*float(atr_value)))
     else:stop_loss=int(float(ltp_price*0.7))
-    target_price=int(ltp_price+int(ltp_price)-stop_loss)
+    target_price=int(ltp_price+ltp_price-stop_loss)
     return target_price,stop_loss
   except:
-    print("Error in get_sl_tgt",indicator_strategy)
     target_price=int(float(ltp_price*1.5))
     stop_loss=int(float(ltp_price*0.7))
     return target_price,stop_loss
