@@ -1021,7 +1021,7 @@ def loop_code():
   while now < day_end:
     now=datetime.datetime.now(tz=gettz('Asia/Kolkata'))
     next_loop=now.replace(second=0, microsecond=0)+ datetime.timedelta(minutes=1)
-    st.session_state['last_check']=now.time()
+    st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
     login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
     try:
       if now > marketopen and now < marketclose: sub_loop_code(now.minute)
@@ -1495,7 +1495,7 @@ if bnf_pe:
   buy_option(pe_strike_symbol,'Manual Buy','5m')
 if restart:
   pass
-login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check'].replace(microsecond=0)}")
+login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
 orderbook,pending_orders=get_order_book()
 position,open_position=get_open_position()
 get_todays_trade(orderbook)
