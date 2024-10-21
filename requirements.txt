@@ -3,7 +3,7 @@ numpy==1.26.3
 pandas
 pydeck
 streamlit
-yfinance
+yfinance==0.2.9
 pandas_ta
 smartapi-python
 websocket-client
