@@ -722,7 +722,7 @@ def get_sl_tgt(ltp_price,indicator_strategy):
     atr_value=atr_match.group(1) if atr_match else None
 
     if sl_match:stop_loss=int(sl_value)
-    elif atr_match:stop_loss=int(float(ltp)-(1*float(atr_value)))
+    elif atr_match:stop_loss=int(float(ltp_price)-(1*float(atr_value)))
     else:stop_loss=int(float(ltp_price*0.7))
     target_price=int(ltp+int(ltp)-stop_loss)
     return target_price,stop_loss
