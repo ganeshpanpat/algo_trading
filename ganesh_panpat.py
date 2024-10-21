@@ -1495,7 +1495,7 @@ if bnf_pe:
   buy_option(pe_strike_symbol,'Manual Buy','5m')
 if restart:
   pass
-login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
+login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check'].replace(microsecond=0)}")
 orderbook,pending_orders=get_order_book()
 position,open_position=get_open_position()
 get_todays_trade(orderbook)
