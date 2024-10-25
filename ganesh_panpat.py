@@ -112,12 +112,12 @@ with tab5:
   ind_col1,ind_col2,ind_col3,ind_col4=st.columns([5,1.5,1.5,1.5])
   indicator_list=['TEMA_EMA_9 Trade','ST_7_3 Trade', 'ST_10_2 Trade','ST_10_1 Trade','RSI MA Trade','RSI_60 Trade','MACD Trade','PSAR Trade',
                   'DI Trade','MA Trade','EMA Trade','EMA_5_7 Trade','MA 21 Trade','HMA Trade','RSI_60 Trade','EMA_High_Low Trade',
-                  'Two Candle Theory','Multi Time ST Trade','RSI_WMA_9 Trade','High Break Trade']
+                  'Two Candle Theory','Multi Time ST Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade']
   with ind_col1:
     index_list=st.multiselect('Select Index',['NIFTY','BANKNIFTY','SENSEX','FINNIFTY'],['BANKNIFTY', 'NIFTY', 'SENSEX','FINNIFTY'])
     time_frame_interval = st.multiselect('Select Time Frame',['IDX:5M', 'IDX:15M','IDX:1M', 'OPT:5M', 'OPT:1M','GTT:5M'],['IDX:5M','OPT:5M'])
     five_buy_indicator = st.multiselect('5M Indicator',indicator_list,['ST_7_3 Trade', 'ST_10_2 Trade'])
-    five_opt_buy_indicator = st.multiselect('5M OPT Indicator',indicator_list,['ST_7_3 Trade', 'ST_10_2 Trade','High Break Trade'])
+    five_opt_buy_indicator = st.multiselect('5M OPT Indicator',indicator_list,['ST_7_3 Trade', 'ST_10_2 Trade','Vwap ST_7_3 Trade'])
     gtt_indicator=st.multiselect('GTT Indicator',['5M_ST','5M_ST_10_2','1M_10_1','1M_10_2'],['5M_ST','5M_ST_10_2'])
     one_buy_indicator = st.multiselect('1M Indicator',indicator_list,[])
     one_opt_buy_indicator = st.multiselect('1M OPT Indicator',indicator_list,[])
@@ -416,114 +416,10 @@ def get_historical_data(symbol="-",interval='5m',token="-",exch_seg="-",candle_t
     logger.info(f"error in get_historical_data: {e}")
     return None
 
-def get_trade_info_old(df):
-  for i in ['ST_7_3 Trade','MACD Trade','PSAR Trade','DI Trade','MA Trade','EMA Trade','BB Trade','Trade','Trade End',
-            'Rainbow MA','Rainbow Trade','MA 21 Trade','ST_10_2 Trade','Two Candle Theory','HMA Trade','VWAP Trade',
-            'EMA_5_7 Trade','ST_10_4_8 Trade','EMA_High_Low Trade','RSI MA Trade','RSI_60 Trade','ST_10_1 Trade','TEMA_EMA_9 Trade','RSI_WMA_9 Trade']:df[i]='-'
-  time_frame=df['Time Frame'][0]
-  Symbol=df['Symbol'][0]
-  symbol_type = "IDX" if Symbol in ["^NSEBANK", "BANKNIFTY", "^NSEI", "NIFTY", "SENSEX", "^BSESN"] else "OPT"
-  indicator_list=[]
-  if symbol_type=="IDX":
-    if time_frame=="5m":indicator_list=five_buy_indicator
-    elif time_frame=="15m":indicator_list=fifteen_buy_indicator
-    else:indicator_list=['ST_7_3 Trade','ST_10_2 Trade','TEMA_EMA_9 Trade','RSI_60 Trade','RSI_WMA_9 Trade']
-  elif symbol_type=="OPT":
-    if time_frame=="5m":indicator_list=five_opt_buy_indicator
-    elif time_frame=="15m":indicator_list=[]
-    elif time_frame=="1m":indicator_list=one_opt_buy_indicator
-    else:indicator_list=['ST_7_3 Trade','ST_10_2 Trade','TEMA_EMA_9 Trade','RSI_60 Trade','RSI_WMA_9 Trade']
-  df['Indicator']=symbol_type+" "+df['Time Frame']
-  df['Trade']="-"
-  df['Trade End']="-"
-  for i in range(1, len(df)):
-    try:
-      if df.iloc[i-1]['Close'] <= df.iloc[i-1]['Supertrend'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend']:
-        df.loc[i, 'ST_7_3 Trade'] = "Buy"
-      elif df.iloc[i-1]['Close'] >= df.iloc[i-1]['Supertrend'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend']:
-        df.loc[i, 'ST_7_3 Trade'] = "Sell"
-
-      if df.iloc[i]['MACD'] > df.iloc[i]['MACD signal'] and df.iloc[i-1]['MACD'] < df.iloc[i-1]['MACD signal']:
-        df.loc[i, 'MACD Trade'] = "Buy"
-      elif df.iloc[i]['MACD'] < df.iloc[i]['MACD signal'] and df.iloc[i-1]['MACD'] > df.iloc[i-1]['MACD signal']:
-        df.loc[i, 'MACD Trade'] = "Sell"
-
-      if df.iloc[i-1]['Close'] < df.iloc[i-1]['Supertrend_10_2'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend_10_2']:
-        df.loc[i, 'ST_10_2 Trade'] = "Buy"
-      elif df.iloc[i-1]['Close'] > df.iloc[i-1]['Supertrend_10_2'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend_10_2']:
-        df.loc[i, 'ST_10_2 Trade'] = "Sell"
-
-      if df.iloc[i-1]['Close'] < df.iloc[i-1]['Supertrend_10_1'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend_10_1']:
-        df.loc[i, 'ST_10_1 Trade'] = "Buy"
-      elif df.iloc[i-1]['Close'] > df.iloc[i-1]['Supertrend_10_1'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend_10_1']:
-        df.loc[i, 'ST_10_1 Trade'] = "Sell"
-
-      if df.iloc[i-1]['Tema_9'] < df.iloc[i-1]['EMA_9'] and df.iloc[i]['Tema_9'] > df.iloc[i]['EMA_9'] and int(df.iloc[i]['RSI']) >= 55:
-        df.loc[i, 'TEMA_EMA_9 Trade'] = "Buy"
-      elif df.iloc[i-1]['Tema_9'] > df.iloc[i-1]['EMA_9'] and df.iloc[i]['Tema_9'] < df.iloc[i]['EMA_9']:
-        df.loc[i, 'TEMA_EMA_9 Trade'] = "Sell"
-
-      if int(df.iloc[i]['RSI']) >= 60 and int(df.iloc[i-1]['RSI']) < 60: df.loc[i, 'RSI_60 Trade'] = "Buy"
-
-      #if df['Close'][i-1]<=df['PSAR'][i-1] and df['Close'][i]> df['PSAR'][i]: df['PSAR Trade'][i]="Buy"
-      #elif df['Close'][i-1]>=df['PSAR'][i-1] and df['Close'][i]< df['PSAR'][i]: df['PSAR Trade'][i]="Sell"
-
-      #if df['PLUS_DI'][i-1]<=df['MINUS_DI'][i-1] and df['PLUS_DI'][i]> df['MINUS_DI'][i]: df['DI Trade'][i]="Buy"
-      #elif df['PLUS_DI'][i-1]>=df['MINUS_DI'][i-1] and df['PLUS_DI'][i]< df['MINUS_DI'][i]: df['DI Trade'][i]="Sell"
-
-      #if df['MA_50'][i-1]<=df['MA_200'][i-1] and df['MA_50'][i]> df['MA_200'][i]: df['MA Trade'][i]="Buy"
-      #elif df['MA_50'][i-1]>=df['MA_200'][i-1] and df['MA_50'][i]< df['MA_200'][i]: df['MA Trade'][i]="Sell"
-
-      #if df['EMA_12'][i-1]<=df['EMA_26'][i-1] and df['EMA_12'][i]> df['EMA_26'][i]: df['EMA Trade'][i]="Buy"
-      #elif df['EMA_12'][i-1]>=df['EMA_26'][i-1] and df['EMA_12'][i]< df['EMA_26'][i]: df['EMA Trade'][i]="Sell"
-
-      #if df['EMA_5'][i-1]<=df['EMA_7'][i-1] and df['EMA_5'][i]> df['EMA_7'][i]: df['EMA_5_7 Trade'][i]="Buy"
-      #elif df['EMA_5'][i-1]>=df['EMA_7'][i-1] and df['EMA_5'][i]< df['EMA_7'][i]: df['EMA_5_7 Trade'][i]="Sell"
-
-      #if df['Close'][i-1]< df['MA_21'][i-1] and df['Close'][i]> df['MA_21'][i]: df['MA 21 Trade'][i]="Buy"
-      #elif df['Close'][i-1]> df['MA_21'][i-1] and df['Close'][i]< df['MA_21'][i]: df['MA 21 Trade'][i]="Sell"
-
-      #if df['HMA_21'][i-1]< df['HMA_55'][i-1] and df['HMA_21'][i]> df['HMA_55'][i]: df['HMA Trade'][i]="Buy"
-      #elif df['HMA_21'][i-1]> df['HMA_55'][i-1] and df['HMA_21'][i]< df['HMA_55'][i]: df['HMA Trade'][i]="Sell"
-
-      #if int(df['RSI'][i])>=60 or int(df['RSI'][i])<=40:
-      #  if df['Close'][i-1]<df['EMA_High'][i-1] and df['Close'][i] > df['EMA_High'][i]: df['EMA_High_Low Trade'][i]="Buy"
-      #  if df['Close'][i-1]>df['EMA_Low'][i-1] and df['Close'][i]<df['EMA_Low'][i]: df['EMA_High_Low Trade'][i]="Sell"
-
-      #if (df['Close'][i-1]<df['Open'][i-1] and df['Close'][i]< df['Open'][i] and
-      #  df['Close'][i]< df['Supertrend_10_2'][i] and df['RSI'][i]<=40 and df['VWAP'][i]>df['Close'][i] and
-      #  df['Close'][i]<df['WMA_20'][i] and df['Volume'][i]>1000):
-      #  df['Two Candle Theory'][i]='Sell'
-      #elif (df['Close'][i-1] > df['Open'][i-1] and df['Close'][i] > df['Open'][i] and
-      #  df['Close'][i] > df['Supertrend_10_2'][i] and df['RSI'][i] >= 50 and df['VWAP'][i]<df['Close'][i] and
-      #  df['Close'][i]>df['WMA_20'][i] and df['Volume'][i]>1000):
-      #  df['Two Candle Theory'][i]='Buy'
-      for indicator_trade in indicator_list:
-        if df[indicator_trade][i]=="Buy":
-          df.loc[i,'Trade']="Buy"
-          df.loc[i,'Trade End']="Buy"
-          df.loc[i,'Indicator']=df['Trade'][i]+" "+df['Indicator'][i]+":"+indicator_trade+' RSI:'+str(int(df['RSI'][i]))
-          break
-        elif df[indicator_trade][i]=="Sell":
-          df.loc[i,'Trade']="Sell"
-          df.loc[i,'Trade End']="Sell"
-          df.loc[i,'Indicator']=df['Trade'][i]+" "+df['Indicator'][i]+":"+indicator_trade+' RSI:'+str(int(df['RSI'][i]))
-          break
-      if df.iloc[i]['Supertrend_10_2'] < df.iloc[i]['Close']:
-        tgt=2*(int(df.iloc[i]['Close'])-int(df.iloc[i]['Supertrend_10_2']))
-        sl= df.iloc[i]['Supertrend_10_2']
-        df.loc[i,'Indicator']=df.loc[i,'Indicator'] + "("+ str(sl)+":"+str(tgt)+")"
-      elif df.iloc[i]['Supertrend'] < df.iloc[i]['Close']:
-        tgt=2*(int(df.iloc[i]['Close'])-int(df.iloc[i]['Supertrend']))
-        sl= df.iloc[i]['Supertrend']
-        df.loc[i,'Indicator']=df.loc[i,'Indicator'] + "("+ str(sl)+":"+str(tgt)+")"
-    except Exception as e:pass
-  return df
-
 def get_trade_info(df):
     trade_columns = ['ST_7_3 Trade','MACD Trade','PSAR Trade','DI Trade','MA Trade','EMA Trade','BB Trade','Trade','Trade End',
                      'Rainbow MA','Rainbow Trade','MA 21 Trade','ST_10_2 Trade','Two Candle Theory','HMA Trade','VWAP Trade',
-                     'EMA_5_7 Trade','ST_10_4_8 Trade','EMA_High_Low Trade','RSI MA Trade','RSI_60 Trade','ST_10_1 Trade','TEMA_EMA_9 Trade','RSI_WMA_9 Trade','High Break Trade']
+                     'EMA_5_7 Trade','ST_10_4_8 Trade','EMA_High_Low Trade','RSI MA Trade','RSI_60 Trade','ST_10_1 Trade','TEMA_EMA_9 Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade']
     
     for col in trade_columns:df[col] = '-'
     time_frame = df['Time Frame'][0]
@@ -548,6 +444,10 @@ def get_trade_info(df):
     if len(df) >= 2:
       i = len(df) - 1  # Get the index of the last row
       try:
+        if df.iloc[i-1]['VWAP'] <= df.iloc[i-1]['Supertrend'] and df.iloc[i]['VWAP'] > df.iloc[i]['Supertrend'] and symbol_type == "OPT":
+          df.loc[i, 'Vwap ST_7_3 Trade'] = "Buy"
+          sl=df.iloc[i]['Supertrend']
+            
         if df.iloc[i-1]['Close'] <= df.iloc[i-1]['Supertrend'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend']:
           df.loc[i, 'ST_7_3 Trade'] = "Buy"
           if symbol_type == "OPT":sl=df.iloc[i]['Supertrend']
