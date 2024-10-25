@@ -621,7 +621,9 @@ def get_sl_tgt(ltp_price,indicator_strategy):
     #tgt_value=tgt_match.group(1) if tgt_match else None
     atr_value=atr_match.group(1) if atr_match else None
 
-    if sl_match:stop_loss=int(sl_value)
+    if sl_value!="-" and sl_value: stop_loss=int(sl_value)
+    elif sl_value=="-" and atr_match==True and "IDX" in indicator_strategy:stop_loss=int(float(ltp_price)-(0.5*float(atr_value)))
+    elif sl_match:stop_loss=int(sl_value)
     elif atr_match:stop_loss=int(float(ltp_price)-(1*float(atr_value)))
     else:stop_loss=int(float(ltp_price*0.7))
     target_price=int(ltp_price+ltp_price-stop_loss)
