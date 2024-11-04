@@ -112,16 +112,16 @@ with tab5:
   ind_col1,ind_col2,ind_col3,ind_col4=st.columns([5,1.5,1.5,1.5])
   indicator_list=['TEMA_EMA_9 Trade','ST_7_3 Trade', 'ST_10_2 Trade','ST_10_1 Trade','RSI MA Trade','RSI_60 Trade','MACD Trade','PSAR Trade',
                   'DI Trade','MA Trade','EMA Trade','EMA_5_7 Trade','MA 21 Trade','HMA Trade','RSI_60 Trade','EMA_High_Low Trade',
-                  'Two Candle Theory','Multi Time ST Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade']
+                  'Two Candle Theory','Multi Time ST Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade','MA_50_ST Trade']
   with ind_col1:
     index_list=st.multiselect('Select Index',['NIFTY','BANKNIFTY','SENSEX','FINNIFTY'],['BANKNIFTY', 'NIFTY', 'SENSEX','FINNIFTY'])
     time_frame_interval = st.multiselect('Select Time Frame',['IDX:5M', 'IDX:15M','IDX:1M', 'OPT:5M', 'OPT:1M','GTT:5M'],['IDX:5M','OPT:5M'])
-    five_buy_indicator = st.multiselect('5M Indicator',indicator_list,['ST_7_3 Trade', 'ST_10_2 Trade'])
-    five_opt_buy_indicator = st.multiselect('5M OPT Indicator',indicator_list,['ST_7_3 Trade', 'ST_10_2 Trade','Vwap ST_7_3 Trade'])
+    five_buy_indicator = st.multiselect('5M Indicator',indicator_list,['ST_7_3 Trade', 'ST_10_2 Trade','MA_50_ST Trade'])
+    five_opt_buy_indicator = st.multiselect('5M OPT Indicator',indicator_list,['ST_7_3 Trade', 'ST_10_2 Trade','MA_50_ST Trade'])
     gtt_indicator=st.multiselect('GTT Indicator',['5M_ST','5M_ST_10_2','1M_10_1','1M_10_2'],['5M_ST','5M_ST_10_2'])
     one_buy_indicator = st.multiselect('1M Indicator',indicator_list,[])
     one_opt_buy_indicator = st.multiselect('1M OPT Indicator',indicator_list,[])
-    fifteen_buy_indicator = st.multiselect('15M Indicator',indicator_list,[])
+    fifteen_buy_indicator = st.multiselect('15M Indicator',indicator_list,['MA_50_ST Trade'])
     three_buy_indicator = st.multiselect('3M Indicator',indicator_list,[])
     fut_list=st.multiselect('Select Future',['SILVERMIC','SILVER'],[])
     with ind_col2:
@@ -247,10 +247,12 @@ def get_yf_ltp(symbol="-",token="-",exch_seg='-'):
   
 def get_angel_ltp(symbol="-",token="-",exch_seg='-'):
     try:
-      return obj.getMarketData("LTP",{exch_seg:[token]})['data']['fetched'][0]['ltp']
+      market_data = obj.getMarketData("LTP", {"exch_seg": [token]})
+      return market_data['data']['fetched'][0]['ltp']
     except Exception as e:
         try:
-            return obj.ltpData(exch_seg,symbol,token)['data']['ltp']
+            ltp_data = obj.ltpData(exch_seg, symbol, token)
+            return ltp_data['data']['ltp']
         except Exception as e: return "Unable to get LTP"
 
 def get_ltp_price(symbol="-",token="-",exch_seg='-'):
@@ -419,7 +421,8 @@ def get_historical_data(symbol="-",interval='5m',token="-",exch_seg="-",candle_t
 def get_trade_info(df):
     trade_columns = ['ST_7_3 Trade','MACD Trade','PSAR Trade','DI Trade','MA Trade','EMA Trade','BB Trade','Trade','Trade End',
                      'Rainbow MA','Rainbow Trade','MA 21 Trade','ST_10_2 Trade','Two Candle Theory','HMA Trade','VWAP Trade',
-                     'EMA_5_7 Trade','ST_10_4_8 Trade','EMA_High_Low Trade','RSI MA Trade','RSI_60 Trade','ST_10_1 Trade','TEMA_EMA_9 Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade']
+                     'EMA_5_7 Trade','ST_10_4_8 Trade','EMA_High_Low Trade','RSI MA Trade','RSI_60 Trade','ST_10_1 Trade',
+                     'TEMA_EMA_9 Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade','MA_50_ST Trade']
     
     for col in trade_columns:df[col] = '-'
     time_frame = df['Time Frame'][0]
@@ -483,6 +486,12 @@ def get_trade_info(df):
         if df['Close'][i] > df['Close'][i-1] and df['Close'][i] > df['Close'][i-2] and df['Close'][i] > df['Close'][i-3] and df['Close'][i] > df['Close'][i-4] and df['Close'][i] > df['Close'][i-5]:
           df['High Break Trade'][i] = "Buy"
           if symbol_type == "OPT":sl=min(df['Close'][i],df['Close'][i-1])
+        
+        if df.iloc[i-1]['Close'] < df.iloc[i-1]['MA_50'] and df.iloc[i]['Close'] > df.iloc[i]['MA_50'] and df.iloc[i-1]['Close'] <= df.iloc[i-1]['Supertrend'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend']:
+          df.loc[i, 'MA_50_ST Trade'] = "Buy"
+          if symbol_type == "OPT":sl=df.iloc[i]['MA_50']
+        elif df.iloc[i-1]['Close'] > df.iloc[i-1]['MA_50'] and df.iloc[i]['Close'] < df.iloc[i]['MA_50'] and df.iloc[i-1]['Close'] >= df.iloc[i-1]['Supertrend'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend']:
+          df.loc[i, 'MA_50_ST Trade'] = "Sell"
         #elif df['Close'][i] < df['Close'][i-1] and df['Close'][i] < df['Close'][i-2] and df['Close'][i] < df['Close'][i-3] and df['Close'][i] < df['Close'][i-4] and df['Close'][i] < df['Close'][i-5]:
           #df['Signal'][i] = "Sell"
       
@@ -522,6 +531,7 @@ def calculate_indicator(df):
     df['EMA_9']=pdta.ema(df['Close'],length=6)
     df['RSI_9']=pdta.rsi(df['Close'],timeperiod=9)
     df['WMA_RSI_9']=pdta.wma(df['RSI_9'],length=9)
+    df['MA_50']=df['Close'].rolling(50).mean()
     #df['UBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBU_20_2.0']
     #df['MBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBM_20_2.0']
     #df['LBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBL_20_2.0']
@@ -811,15 +821,16 @@ def trade_near_options(time_frame):
 
 def closing_trade():
   try:
-    orderbook,pending_orders=get_order_book()
-    st.session_state['NIFTY_5m_Trade']="Buy"
-    st.session_state['BANKNIFTY_5m_Trade']="Buy"
-    st.session_state['SENSEX_5m_Trade']="Buy"
-    todays_trade=get_todays_trade(orderbook)
-    st.session_state['NIFTY_5m_Trade']="Sell"
-    st.session_state['BANKNIFTY_5m_Trade']="Sell"
-    st.session_state['SENSEX_5m_Trade']="Sell"
-    todays_trade=get_todays_trade(orderbook)
+    pass
+    #orderbook,pending_orders=get_order_book()
+    #st.session_state['NIFTY_5m_Trade']="Buy"
+    #st.session_state['BANKNIFTY_5m_Trade']="Buy"
+    #st.session_state['SENSEX_5m_Trade']="Buy"
+    #todays_trade=get_todays_trade(orderbook)
+    #st.session_state['NIFTY_5m_Trade']="Sell"
+    #st.session_state['BANKNIFTY_5m_Trade']="Sell"
+    #st.session_state['SENSEX_5m_Trade']="Sell"
+    #todays_trade=get_todays_trade(orderbook)
   except:pass
 
 def trail_sl():
@@ -1130,9 +1141,9 @@ def get_todays_trade(orderbook):
       return None
     orderbook=update_price_orderbook(orderbook)
     orderbook['updatetime'] = pd.to_datetime(orderbook['updatetime']).dt.time
-    sell_df=orderbook[(orderbook['transactiontype']=="SELL") & ((orderbook['status']=="complete") | (orderbook['status']=="rejected"))]
+    sell_df=orderbook[(orderbook['transactiontype']=="SELL") & ((orderbook['status']=="complete") | (orderbook['status']=="complete"))]
     sell_df['Remark']='-'
-    buy_df=orderbook[(orderbook['transactiontype']=="BUY") & ((orderbook['status']=="complete") | (orderbook['status']=="rejected"))]
+    buy_df=orderbook[(orderbook['transactiontype']=="BUY") & ((orderbook['status']=="complete") | (orderbook['status']=="complete"))]
     buy_df['Exit Time']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(hour=15, minute=30, second=0, microsecond=0,tzinfo=None).time()
     buy_df['Status']="Pending"
     for i in ['Sell','LTP','Profit','Index SL','Time Frame','Target','SL','Profit %','Sell Indicator']:buy_df[i]='-'
