@@ -422,7 +422,7 @@ def get_trade_info(df):
     trade_columns = ['ST_7_3 Trade','MACD Trade','PSAR Trade','DI Trade','MA Trade','EMA Trade','BB Trade','Trade','Trade End',
                      'Rainbow MA','Rainbow Trade','MA 21 Trade','ST_10_2 Trade','Two Candle Theory','HMA Trade','VWAP Trade',
                      'EMA_5_7 Trade','ST_10_4_8 Trade','EMA_High_Low Trade','RSI MA Trade','RSI_60 Trade','ST_10_1 Trade',
-                     'TEMA_EMA_9 Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade','MA_50_ST Trade']
+                     'TEMA_EMA_9 Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade','MA_50_ST Trade','MA_50 Trade']
     
     for col in trade_columns:df[col] = '-'
     time_frame = df['Time Frame'][0]
@@ -486,14 +486,14 @@ def get_trade_info(df):
         if df['Close'][i] > df['Close'][i-1] and df['Close'][i] > df['Close'][i-2] and df['Close'][i] > df['Close'][i-3] and df['Close'][i] > df['Close'][i-4] and df['Close'][i] > df['Close'][i-5]:
           df['High Break Trade'][i] = "Buy"
           if symbol_type == "OPT":sl=min(df['Close'][i],df['Close'][i-1])
-        
-        if df.iloc[i-1]['Close'] < df.iloc[i-1]['MA_50'] and df.iloc[i]['Close'] > df.iloc[i]['MA_50'] and df.iloc[i-1]['Close'] <= df.iloc[i-1]['Supertrend'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend']:
+
+        if df.iloc[i-1]['Close'] <= df.iloc[i-1]['MA_50'] and df.iloc[i]['Close'] > df.iloc[i]['MA_50']:df.loc[i, 'MA_50 Trade'] = "Buy"
+        elif df.iloc[i-1]['Close'] >= df.iloc[i-1]['MA_50'] and df.iloc[i]['Close'] < df.iloc[i]['MA_50']:df.loc[i, 'MA_50 Trade'] = "Sell"
+
+        if df.loc[i, 'MA_50 Trade'] == "Buy" and df.loc[i, 'ST_7_3 Trade'] == "Buy":
           df.loc[i, 'MA_50_ST Trade'] = "Buy"
-          if symbol_type == "OPT":sl=df.iloc[i]['MA_50']
-        elif df.iloc[i-1]['Close'] > df.iloc[i-1]['MA_50'] and df.iloc[i]['Close'] < df.iloc[i]['MA_50'] and df.iloc[i-1]['Close'] >= df.iloc[i-1]['Supertrend'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend']:
-          df.loc[i, 'MA_50_ST Trade'] = "Sell"
-        #elif df['Close'][i] < df['Close'][i-1] and df['Close'][i] < df['Close'][i-2] and df['Close'][i] < df['Close'][i-3] and df['Close'][i] < df['Close'][i-4] and df['Close'][i] < df['Close'][i-5]:
-          #df['Signal'][i] = "Sell"
+          if symbol_type == "OPT":sl=df.iloc[i]['Supertrend']
+        elif df.loc[i, 'MA_50 Trade'] == "Sell" and df.loc[i, 'ST_7_3 Trade'] == "Sell":df.loc[i, 'MA_50_ST Trade'] = "Sell"
       
         #start_index = -7;end_index = -2
         #subset_df =df.iloc[start_index:end_index]
@@ -506,7 +506,6 @@ def get_trade_info(df):
                 df.loc[i, 'Trade'] = "Buy"
                 df.loc[i, 'Trade End'] = "Buy"
                 df.loc[i, 'Indicator'] = df['Indicator'][i] + ":" + indicator_trade + ' RSI:' + str(int(df['RSI'][i]))  + ' ATR:' + str(int(df['Atr'][i]))
-                if sl=="-":df.loc[i, 'Indicator']=df['Indicator'][i]+" SL:" +str(sl)
                 break
             elif df[indicator_trade][i] == "Sell":
                 df.loc[i, 'Trade'] = "Sell"
@@ -930,14 +929,15 @@ def loop_code():
       elif now > int_marketclose: close_day_end_trade()
       orderbook,pending_orders=get_order_book()
       position,open_position=get_open_position()
-      buy_df=get_todays_trade(orderbook)
-      check_pnl_todays_trade(buy_df)
+      #buy_df=get_todays_trade(orderbook)
+      #check_pnl_todays_trade(buy_df)
       all_near_options()
       check_indicator_exit(buy_df,now.minute)
       index_ltp_string.text(f"Index Ltp: {print_ltp()}")
       if datetime.datetime.now(tz=gettz('Asia/Kolkata')) < next_loop:
         while datetime.datetime.now(tz=gettz('Asia/Kolkata')).second< 50:
-          check_ltp_todays_trade(buy_df)
+          #check_ltp_todays_trade(buy_df)
+          position,open_position=get_open_position()
           index_ltp_string.text(f"Index Ltp: {print_ltp()}")
           time.sleep(1)
         login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']} Next Check: {next_loop.time()}")
