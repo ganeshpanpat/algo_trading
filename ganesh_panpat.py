@@ -716,12 +716,6 @@ def index_trade(symbol,interval):
     fut_data=get_historical_data(symbol=symbol,interval=interval,token="-",exch_seg="-",candle_type="NORMAL")
     if fut_data is None: return None
     trade=str(fut_data['Trade'].values[-1])
-    if trade!="-":
-      indicator_strategy=f"{fut_data['Indicator'].values[-1]} [{fut_data['Datetime'].values[-1]}]"
-      indexLtp=fut_data['Close'].values[-1]
-      indexLtp, ce_strike_symbol,pe_strike_symbol=get_ce_pe_data(symbol,indexLtp=indexLtp)
-      if trade=="Buy" : buy_option(ce_strike_symbol,indicator_strategy,interval)
-      elif trade=="Sell" : buy_option(pe_strike_symbol,indicator_strategy,interval)
     information={'Time':str(datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)),
                 'Symbol':symbol,
                 'Datetime':str(fut_data['Datetime'].values[-1]),'Close':fut_data['Close'].values[-1],
@@ -733,6 +727,12 @@ def index_trade(symbol,interval):
                 'RSI':fut_data['RSI'].values[-1],
                 'VWAP':fut_data['VWAP'].values[-1]}
     st.session_state['options_trade_list'].append(information)
+    if trade!="-":
+      indicator_strategy=f"{fut_data['Indicator'].values[-1]} [{fut_data['Datetime'].values[-1]}]"
+      indexLtp=fut_data['Close'].values[-1]
+      indexLtp, ce_strike_symbol,pe_strike_symbol=get_ce_pe_data(symbol,indexLtp=indexLtp)
+      if trade=="Buy" : buy_option(ce_strike_symbol,indicator_strategy,interval)
+      elif trade=="Sell" : buy_option(pe_strike_symbol,indicator_strategy,interval)
     st.session_state['index_trade_end'][symbol+"_"+interval] = trade
   except Exception as e:
     logger.info(f"error in index_trade: {e}")
