@@ -705,7 +705,7 @@ def close_options_position(position,nf_5m_trade_end="-",bnf_5m_trade_end="-",sen
 
 def index_trade(symbol,interval):
   try:
-    logger.info(f"Index Trade: {symbol {interval}")
+    logger.info(f"Index Trade: {symbol} {interval}")
     fut_data=get_historical_data(symbol=symbol,interval=interval,token="-",exch_seg="-",candle_type="NORMAL")
     if fut_data is None: return None
     trade=str(fut_data['Trade'].values[-1])
