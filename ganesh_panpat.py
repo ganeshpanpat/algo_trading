@@ -39,6 +39,7 @@ if 'todays_trade' not in st.session_state:st.session_state['todays_trade']=[]
 if 'orderbook' not in st.session_state:st.session_state['orderbook']=[]
 if 'pending_orders' not in st.session_state:st.session_state['pending_orders']=[]
 if 'near_opt_df' not in st.session_state:st.session_state['near_opt_df']=[]
+fut_list=st.session_state['fut_list']
 
 def get_token_df():
   url = 'https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json'
