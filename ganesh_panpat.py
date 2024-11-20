@@ -39,7 +39,6 @@ if 'todays_trade' not in st.session_state:st.session_state['todays_trade']=[]
 if 'orderbook' not in st.session_state:st.session_state['orderbook']=[]
 if 'pending_orders' not in st.session_state:st.session_state['pending_orders']=[]
 if 'near_opt_df' not in st.session_state:st.session_state['near_opt_df']=[]
-fut_list=st.session_state['fut_list']
 
 def get_token_df():
   url = 'https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json'
@@ -111,7 +110,7 @@ with setting_tb:
     one_opt_buy_indicator = st.multiselect('1M OPT Indicator',indicator_list,[])
     fifteen_buy_indicator = st.multiselect('15M Indicator',indicator_list,['MA_50_ST Trade'])
     three_buy_indicator = st.multiselect('3M Indicator',indicator_list,[])
-    fut_list=st.multiselect('Select Future',fut_list,fut_list)
+    fut_list=st.multiselect('Select Future',['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'],['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'])
     with ind_col2:
       target_order_type = st.selectbox('Target Order',('Target', 'Stop_Loss', 'NA'),1)
       target_type = st.selectbox('Target Type',('Points', 'Per Cent','Indicator','ATR'),3)
