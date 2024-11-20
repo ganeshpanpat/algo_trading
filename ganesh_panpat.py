@@ -707,7 +707,6 @@ def index_trade(symbol,interval):
   try:
     logger.info(f"Index Trade: {symbol {interval}")
     fut_data=get_historical_data(symbol=symbol,interval=interval,token="-",exch_seg="-",candle_type="NORMAL")
-    st.write(Time'+str(datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0))+symbol + str(len(fut_data))
     if fut_data is None: return None
     trade=str(fut_data['Trade'].values[-1])
     if trade!="-":
@@ -862,10 +861,6 @@ def check_login():
 
 def sub_loop_code(now_minute):
   try:
-    st.session_state['options_trade_list']=[]
-    for symbol in st.session_state['fut_list']:
-      index_trade(symbol+".NS","5m")
-      log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
     if (now_minute%5==0 and 'IDX:5M' in time_frame_interval):
       st.session_state['index_trade_end']={}
       for symbol in index_list:
@@ -875,7 +870,6 @@ def sub_loop_code(now_minute):
         trade_near_options('5m')
         log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
       if 'STK:5M' in time_frame_interval:
-        st.write("Stock Trading")
         for symbol in st.session_state['fut_list']:
           index_trade(symbol+".NS","5m")
         log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
