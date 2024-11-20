@@ -373,7 +373,7 @@ def angel_data(token,interval,exch_seg,period=5):
     df=df[['Date','Datetime','Open','High','Low','Close','Volume']]
     return df
   except Exception as e:
-    logger.info(f"error in angel_data : {e}")
+    logger.info(f"error in angel_data : token {token} {e}")
     return None
 
 def get_historical_data(symbol="-",interval='5m',token="-",exch_seg="-",candle_type="NORMAL"):
