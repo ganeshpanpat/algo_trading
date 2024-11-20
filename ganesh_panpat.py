@@ -378,6 +378,7 @@ def angel_data(token,interval,exch_seg,period=5):
 
 def get_historical_data(symbol="-",interval='5m',token="-",exch_seg="-",candle_type="NORMAL"):
   try:
+    logger.info(f"Getting in get_historical_data: {symbol}")
     symbol_i="-";df=None
     if (symbol=="^NSEI" or symbol=="NIFTY") : symbol_i,token,exch_seg="^NSEI",99926000,"NSE"
     elif (symbol=="^NSEBANK" or symbol=="BANKNIFTY") : symbol_i,token,exch_seg="^NSEBANK",99926009,"NSE"
