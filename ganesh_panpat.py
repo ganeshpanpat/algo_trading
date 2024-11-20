@@ -704,8 +704,8 @@ def close_options_position(position,nf_5m_trade_end="-",bnf_5m_trade_end="-",sen
 
 def index_trade(symbol,interval):
   try:
-    st.write(symbol)
     fut_data=get_historical_data(symbol=symbol,interval=interval,token="-",exch_seg="-",candle_type="NORMAL")
+    st.write(Time'+str(datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0))+symbol + str(len(fut_data))
     if fut_data is None: return None
     trade=str(fut_data['Trade'].values[-1])
     if trade!="-":
