@@ -565,13 +565,14 @@ def getTokenInfo(symbol, exch_seg ='NFO',instrumenttype='OPTIDX',strike_price = 
     elif (instrumenttype == 'FUTSTK') or (instrumenttype == 'FUTIDX'):
         return token_df[(token_df['instrumenttype'] == instrumenttype) & (token_df['name'] == symbol)].sort_values(by=['expiry'], ascending=True)
     elif (instrumenttype == 'OPTSTK' or instrumenttype == 'OPTIDX'):
-        if pe_ce=="CE":
-            return (token_df[(token_df['name'] == symbol) & (token_df['expiry']==expiry_day) &
-                    (token_df['instrumenttype'] == instrumenttype) & (token_df['strike'] >= strike_price*100) &
-                    (token_df['symbol'].str.endswith(pe_ce))].sort_values(by=['expiry']))
-        else:
-          return (token_df[(token_df['name'] == symbol) & (token_df['expiry']==expiry_day) &
-                    (token_df['instrumenttype'] == instrumenttype) & (token_df['strike'] <= strike_price*100) &
+      available_strikes = token_df[(token_df['name'] == symbol) & (token_df['expiry'] == expiry_day) & (token_df['instrumenttype'] == instrumenttype) &
+                                            (token_df['symbol'].str.endswith(pe_ce))]['strike'].unique()
+      if available_strikes.size > 0:
+        nearest_strike = min(available_strikes, key=lambda x: abs(x - current_price * 100))
+        return (token_df[(token_df['name'] == symbol) & (token_df['expiry'] == expiry_day) & (token_df['instrumenttype'] == instrumenttype) & (token_df['strike'] == nearest_strike) &
+                            (token_df['symbol'].str.endswith(pe_ce))].sort_values(by=['expiry']))
+      return (token_df[(token_df['name'] == symbol) & (token_df['expiry']==expiry_day) &
+                    (token_df['instrumenttype'] == instrumenttype) & (token_df['strike'] == strike_price*100) &
                     (token_df['symbol'].str.endswith(pe_ce))].sort_values(by=['expiry']))
   except Exception as e:return None
 
@@ -580,19 +581,21 @@ def get_ce_pe_data(symbol,indexLtp="-"):
   # ATM
   if symbol=='BANKNIFTY' or symbol=='^NSEBANK':
     symbol='BANKNIFTY'
+    ATMStrike = math.floor(indexLtp/100)*100
     expiry_day=st.session_state['bnf_expiry_day']
     exch_seg="NFO"
-    instrumenttype='OPTIDX'
   elif symbol=='NIFTY' or symbol=='^NSEI':
     symbol='NIFTY'
+    val2 = math.fmod(indexLtp, 50)
+    val3 = 50 if val2 >= 25 else 0
+    ATMStrike = indexLtp - val2 + val3
     expiry_day=st.session_state['nf_expiry_day']
     exch_seg="NFO"
-    instrumenttype='OPTIDX'
   elif symbol=="SENSEX" or symbol=="^BSESN":
     symbol='SENSEX'
+    ATMStrike = math.floor(indexLtp/100)*100
     expiry_day=st.session_state['sensex_expiry_day']
     exch_seg="BFO"
-    instrumenttype='OPTIDX'
   else:
     expiry_day=st.session_state['monthly_expiry_day']
     exch_seg="NFO"
