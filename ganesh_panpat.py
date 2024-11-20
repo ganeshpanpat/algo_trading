@@ -378,10 +378,16 @@ def angel_data(token,interval,exch_seg,period=5):
 
 def get_historical_data(symbol="-",interval='5m',token="-",exch_seg="-",candle_type="NORMAL"):
   try:
-    symbol_i="-";df=None;token="-"
+    symbol_i="-";df=None
     if (symbol=="^NSEI" or symbol=="NIFTY") : symbol_i,token,exch_seg="^NSEI",99926000,"NSE"
     elif (symbol=="^NSEBANK" or symbol=="BANKNIFTY") : symbol_i,token,exch_seg="^NSEBANK",99926009,"NSE"
     elif (symbol=="^BSESN" or symbol=="SENSEX") : symbol_i,token,exch_seg="^BSESN",99919000,"BSE"
+    elif symbol=="RELIANCE" : symbol_i,token,exch_seg="RELIANCE-EQ",2885,"NSE"
+    elif symbol=="TCS" : symbol_i,token,exch_seg="TCS-EQ",11536,"NSE"
+    elif symbol=="SAIL" : symbol_i,token,exch_seg="SAIL-EQ",2963,"NSE"
+    elif symbol=="SBIN" : symbol_i,token,exch_seg="SBIN-EQ",3045,"NSE"
+    elif symbol=="HDFCBANK" : symbol_i,token,exch_seg="HDFCBANK-EQ",1333,"NSE"
+    elif symbol=="TRENT" : symbol_i,token,exch_seg="TRENT-EQ",1964,"NSE"
     if (interval=="5m" or interval=='FIVE_MINUTE'): period,delta_time,agl_interval,yf_interval=5,5,"FIVE_MINUTE","5m"
     elif (interval=="1m" or interval=='ONE_MINUTE') : period,delta_time,agl_interval,yf_interval=1,1,"ONE_MINUTE","1m"
     elif (interval=="15m" or interval=='FIFTEEN_MINUTE'): period,delta_time,agl_interval,yf_interval=5,15,"FIFTEEN_MINUTE","15m"
@@ -389,10 +395,7 @@ def get_historical_data(symbol="-",interval='5m',token="-",exch_seg="-",candle_t
     elif (interval=="1d" or interval=='ONE_DAY') : period,delta_time,agl_interval,yf_interval=100,5,"ONE_DAY","1d"
     else:period,delta_time,agl_interval,yf_interval=5,1,"ONE_MINUTE","1m"
     if  symbol[-3:]=='.NS':symbol_i=symbol
-    logger.info(f"historical_data: {symbol} {token}")
-    if (symbol_i[0]=="^") or symbol[-3:]=='.NS':
-      logger.info(f"getting yf data: {symbol} {token}")
-      df=yfna_data(symbol_i,yf_interval,period)
+    if (symbol_i[0]=="^") or symbol[-3:]=='.NS':df=yfna_data(symbol_i,yf_interval,period)
     else:df=angel_data(token,agl_interval,exch_seg,period)
     now=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0, tzinfo=None)
     if now - df.index[-1] > datetime.timedelta(minutes=5):df=angel_data(token,agl_interval,exch_seg,period)
@@ -707,7 +710,6 @@ def close_options_position(position,nf_5m_trade_end="-",bnf_5m_trade_end="-",sen
 
 def index_trade(symbol,interval):
   try:
-    logger.info(f"Index Trade: {symbol} {interval}")
     fut_data=get_historical_data(symbol=symbol,interval=interval,token="-",exch_seg="-",candle_type="NORMAL")
     if fut_data is None: return None
     trade=str(fut_data['Trade'].values[-1])
@@ -874,7 +876,7 @@ def sub_loop_code(now_minute):
         log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
       if 'STK:5M' in time_frame_interval:
         for symbol in st.session_state['fut_list']:
-          index_trade(symbol+".NS","5m")
+          index_trade(symbol,"5m")
         log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
     if (now_minute%15==0 and 'IDX:15M' in time_frame_interval):
       for symbol in index_list:index_trade(symbol,"15m")
