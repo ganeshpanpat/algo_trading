@@ -382,14 +382,14 @@ def get_historical_data(symbol="-",interval='5m',token="-",exch_seg="-",candle_t
     if (symbol=="^NSEI" or symbol=="NIFTY") : symbol_i,token,exch_seg="^NSEI",99926000,"NSE"
     elif (symbol=="^NSEBANK" or symbol=="BANKNIFTY") : symbol_i,token,exch_seg="^NSEBANK",99926009,"NSE"
     elif (symbol=="^BSESN" or symbol=="SENSEX") : symbol_i,token,exch_seg="^BSESN",99919000,"BSE"
-    if symbol[3:]=='-EQ': symbol=symbol[:-3]+".NS"
+    if symbol[3:]=='-EQ': symbol_i=symbol[:-3]+".NS"
     if (interval=="5m" or interval=='FIVE_MINUTE'): period,delta_time,agl_interval,yf_interval=5,5,"FIVE_MINUTE","5m"
     elif (interval=="1m" or interval=='ONE_MINUTE') : period,delta_time,agl_interval,yf_interval=1,1,"ONE_MINUTE","1m"
     elif (interval=="15m" or interval=='FIFTEEN_MINUTE'): period,delta_time,agl_interval,yf_interval=5,15,"FIFTEEN_MINUTE","15m"
     elif (interval=="60m" or interval=='ONE_HOUR'): period,delta_time,agl_interval,yf_interval=30,60,"ONE_HOUR","60m"
     elif (interval=="1d" or interval=='ONE_DAY') : period,delta_time,agl_interval,yf_interval=100,5,"ONE_DAY","1d"
     else:period,delta_time,agl_interval,yf_interval=5,1,"ONE_MINUTE","1m"
-    if (symbol_i[0]=="^"):df=yfna_data(symbol_i,yf_interval,period)
+    if (symbol_i[0]=="^") or symbol_i[3:]=='.NS':df=yfna_data(symbol_i,yf_interval,period)
     else:df=angel_data(token,agl_interval,exch_seg,period)
     now=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0, tzinfo=None)
     if now - df.index[-1] > datetime.timedelta(minutes=5):df=angel_data(token,agl_interval,exch_seg,period)
@@ -870,7 +870,7 @@ def sub_loop_code(now_minute):
         log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
       if 'STK:5M' in time_frame_interval:
         for symbol in st.session_state['fut_list']:
-          index_trade(symbol,"5m")
+          index_trade(symbol+".NS","5m")
         log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
     if (now_minute%15==0 and 'IDX:15M' in time_frame_interval):
       for symbol in index_list:index_trade(symbol,"15m")
@@ -886,8 +886,8 @@ def sub_loop_code(now_minute):
 def loop_code():
   now = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
   marketopen = now.replace(hour=9, minute=20, second=0, microsecond=0)
-  marketclose = now.replace(hour=14, minute=48, second=0, microsecond=0)
-  int_marketclose = now.replace(hour=14, minute=51, second=0, microsecond=0)
+  marketclose = now.replace(hour=20, minute=48, second=0, microsecond=0)
+  int_marketclose = now.replace(hour=20, minute=51, second=0, microsecond=0)
   day_end = now.replace(hour=15, minute=30, second=0, microsecond=0)
   if algo_state==False:return
   all_near_options()
