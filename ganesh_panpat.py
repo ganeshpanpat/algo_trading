@@ -683,7 +683,7 @@ def index_trade(symbol,interval="5m",token="-",exch_seg="NSE"):
   try:
     fut_data=get_historical_data(symbol=symbol,interval=interval,token=token,exch_seg=exch_seg,candle_type="NORMAL")
     if fut_data is None: return None
-    trade=str(fut_data['Trade'].values[-1])'
+    trade=str(fut_data['Trade'].values[-1])
     trade="Buy"
     if trade!="-":
       indicator_strategy=f"{fut_data['Indicator'].values[-1]} [{fut_data['Datetime'].values[-1]}]"
