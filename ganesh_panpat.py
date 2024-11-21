@@ -565,12 +565,6 @@ def getTokenInfo(symbol, exch_seg ='NFO',instrumenttype='OPTIDX',strike_price = 
     elif (instrumenttype == 'FUTSTK') or (instrumenttype == 'FUTIDX'):
         return token_df[(token_df['instrumenttype'] == instrumenttype) & (token_df['name'] == symbol)].sort_values(by=['expiry'], ascending=True)
     elif (instrumenttype == 'OPTSTK' or instrumenttype == 'OPTIDX'):
-      available_strikes = token_df[(token_df['name'] == symbol) & (token_df['expiry'] == expiry_day) & (token_df['instrumenttype'] == instrumenttype) &
-                                            (token_df['symbol'].str.endswith(pe_ce))]['strike'].unique()
-      if available_strikes.size > 0:
-        nearest_strike = min(available_strikes, key=lambda x: abs(x - current_price * 100))
-        return (token_df[(token_df['name'] == symbol) & (token_df['expiry'] == expiry_day) & (token_df['instrumenttype'] == instrumenttype) & (token_df['strike'] == nearest_strike) &
-                            (token_df['symbol'].str.endswith(pe_ce))].sort_values(by=['expiry']))
       return (token_df[(token_df['name'] == symbol) & (token_df['expiry']==expiry_day) &
                     (token_df['instrumenttype'] == instrumenttype) & (token_df['strike'] == strike_price*100) &
                     (token_df['symbol'].str.endswith(pe_ce))].sort_values(by=['expiry']))
