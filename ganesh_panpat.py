@@ -60,6 +60,9 @@ def get_token_df():
   st.session_state['opt_list']=token_df
   st.session_state['stk_opt_list']=stk_token_list
   st.session_state['nf_expiry_day'] = (token_df[(token_df['name'] == 'NIFTY') & (token_df['instrumenttype'] == 'OPTIDX') & (token_df['expiry']>=now_dt)])['expiry'].min()
+  st.session_state['bnf_expiry_day']=(token_df[(token_df['name'] == 'BANKNIFTY') & (token_df['instrumenttype'] == 'OPTIDX')])['expiry'].min()
+  st.session_state['sensex_expiry_day']=(token_df[(token_df['name'] == 'SENSEX') & (token_df['instrumenttype'] == 'OPTIDX')])['expiry'].min()
+  st.session_state['monthly_expiry_day']=(token_df[(token_df['name'] == 'RELIANCE') & (token_df['instrumenttype'] == 'OPTSTK')])['expiry'].min()
 if st.session_state['nf_expiry_day']==None:get_token_df()
 
 login_details=st.empty()
