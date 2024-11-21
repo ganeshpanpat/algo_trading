@@ -32,6 +32,7 @@ if 'nf_expiry_day' not in st.session_state: st.session_state['nf_expiry_day']=No
 if 'sensex_expiry_day' not in st.session_state: st.session_state['sensex_expiry_day']=None
 if 'monthly_expiry_day' not in st.session_state: st.session_state['monthly_expiry_day']=None
 if 'opt_list' not in st.session_state:st.session_state['opt_list']=[]
+if 'stk_token_list' not in st.session_state:st.session_state['stk_token_list']=[]
 if 'fut_list' not in st.session_state:st.session_state['fut_list']=['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK']
 if 'options_trade_list' not in st.session_state:st.session_state['options_trade_list']=[]
 if 'index_trade_end' not in st.session_state:st.session_state['index_trade_end']={}
@@ -68,8 +69,8 @@ login_details=st.empty()
 login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
 index_ltp_string=st.empty()
 index_ltp_string.text(f"Index Ltp: ")
-log_tb, order_tb, position_tb, open_odr_tb, setting_tb, token_tb, gtt_tb, back_test_tb, near_opt_tb= st.tabs(["Log","Order Book", "Position",
-                "Open Order", "Settings","Token List","GTT Orders",'Back Test','Near Options'])
+log_tb, order_tb, position_tb, open_odr_tb, setting_tb, token_tb, stk_token_tb, back_test_tb, near_opt_tb= st.tabs(["Log","Order Book", "Position",
+                "Open Order", "Settings","Token List","Stock Token",'Back Test','Near Options'])
 
 with log_tb:
   col1,col2=st.columns([1,9])
@@ -134,10 +135,9 @@ with setting_tb:
 with token_tb:
     token_df=st.empty()
     token_df=st.dataframe(st.session_state['opt_list'],hide_index=True)
-with gtt_tb:
-  gtt_order_updated=st.empty()
-  gtt_order_updated.text(f"GTT Open Order : ")
-  gtt_order_datatable=st.empty()
+with stk_token_tb:
+    stk_token_df=st.empty()
+    stk_token_df=st.dataframe(st.session_state['stk_token_list'],hide_index=True)
 with back_test_tb:
   backtest=st.button(label="Back Test")
 with near_opt_tb:
