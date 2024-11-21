@@ -27,12 +27,8 @@ st.text("Welcome To Algo Trading")
 if 'Logged_in' not in st.session_state:st.session_state['Logged_in']="Guest"
 if 'login_time' not in st.session_state:st.session_state['login_time']="login_time"
 if 'last_check' not in st.session_state:st.session_state['last_check']="last_check"
-if 'bnf_expiry_day' not in st.session_state: st.session_state['bnf_expiry_day']=None
-if 'nf_expiry_day' not in st.session_state: st.session_state['nf_expiry_day']=None
-if 'sensex_expiry_day' not in st.session_state: st.session_state['sensex_expiry_day']=None
-if 'monthly_expiry_day' not in st.session_state: st.session_state['monthly_expiry_day']=None
 if 'opt_list' not in st.session_state:st.session_state['opt_list']=[]
-if 'stk_token_list' not in st.session_state:st.session_state['stk_token_list']=[]
+if 'stk_opt_list' not in st.session_state:st.session_state['stk_opt_list']=[]
 if 'fut_list' not in st.session_state:st.session_state['fut_list']=['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK']
 if 'options_trade_list' not in st.session_state:st.session_state['options_trade_list']=[]
 if 'index_trade_end' not in st.session_state:st.session_state['index_trade_end']={}
@@ -48,21 +44,17 @@ def get_token_df():
   token_df = pd.DataFrame.from_dict(d)
   token_df['expiry'] = pd.to_datetime(token_df['expiry']).apply(lambda x: x.date())
   token_df = token_df.astype({'strike': float})
+  token_df = token_df.sort_values(by=['name', 'strike'])
+
+  stk_tokel_list=token_df[token_df['name'].isin(fut_list)]
+  stk_tokel_list=stk_tokel_list[((stk_tokel_list['exch_seg'] == 'NSE')|
+                                  (stk_tokel_list['exch_seg'] == 'BSE'))]
+  stk_tokel_list = stk_tokel_list[stk_tokel_list['symbol'].str.endswith('-EQ')]
+  
   now_dt=datetime.datetime.now(tz=gettz('Asia/Kolkata')).date()-datetime.timedelta(days=0)
   token_df=token_df[token_df['expiry']>=now_dt]
-  bnf_expiry_day = (token_df[(token_df['name'] == 'BANKNIFTY') & (token_df['instrumenttype'] == 'OPTIDX')])['expiry'].min()
-  nf_expiry_day = (token_df[(token_df['name'] == 'NIFTY') & (token_df['instrumenttype'] == 'OPTIDX')])['expiry'].min()
-  sensex_expiry_day = (token_df[(token_df['name'] == 'SENSEX') & (token_df['instrumenttype'] == 'OPTIDX')])['expiry'].min()
-  monthly_expiry_day = (token_df[(token_df['name'] == 'RELIANCE') & (token_df['instrumenttype'] == 'OPTSTK')])['expiry'].min()
-  st.session_state['bnf_expiry_day']=bnf_expiry_day
-  st.session_state['nf_expiry_day']=nf_expiry_day
-  st.session_state['sensex_expiry_day']=sensex_expiry_day
-  st.session_state['monthly_expiry_day']=monthly_expiry_day
-  opt_list=token_df[((token_df['name'] == 'BANKNIFTY') & (token_df['expiry'] == bnf_expiry_day) |
-                   (token_df['name'] == 'NIFTY') & (token_df['expiry'] == nf_expiry_day) |
-                   (token_df['name'] == 'SENSEX') & (token_df['expiry'] == sensex_expiry_day) |
-                   (token_df['name'].isin(fut_list) & (token_df['expiry'] == monthly_expiry_day)))]
-  st.session_state['opt_list']=opt_list
+  st.session_state['opt_list']=token_df
+  st.session_state['stk_opt_list']=stk_tokel_list
 if st.session_state['nf_expiry_day']==None:get_token_df()
 
 login_details=st.empty()
