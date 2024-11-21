@@ -691,6 +691,7 @@ def index_trade(symbol,interval="5m",token="-",exch_seg="NSE"):
     fut_data=get_historical_data(symbol=symbol,interval=interval,token=token,exch_seg=exch_seg,candle_type="NORMAL")
     if fut_data is None: return None
     trade=str(fut_data['Trade'].values[-1])
+    trade='Buy'
     information={'Time':str(datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)),
                 'Symbol':symbol,
                 'Datetime':str(fut_data['Datetime'].values[-1]),'Close':fut_data['Close'].values[-1],
@@ -870,9 +871,9 @@ def sub_loop_code(now_minute):
 def loop_code():
   now = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
   marketopen = now.replace(hour=9, minute=20, second=0, microsecond=0)
-  marketclose = now.replace(hour=20, minute=48, second=0, microsecond=0)
-  int_marketclose = now.replace(hour=20, minute=51, second=0, microsecond=0)
-  day_end = now.replace(hour=20, minute=30, second=0, microsecond=0)
+  marketclose = now.replace(hour=22, minute=48, second=0, microsecond=0)
+  int_marketclose = now.replace(hour=22, minute=51, second=0, microsecond=0)
+  day_end = now.replace(hour=22, minute=30, second=0, microsecond=0)
   if algo_state==False:return
   all_near_options()
   while now < day_end:
