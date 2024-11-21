@@ -36,6 +36,7 @@ if 'todays_trade' not in st.session_state:st.session_state['todays_trade']=[]
 if 'orderbook' not in st.session_state:st.session_state['orderbook']=[]
 if 'pending_orders' not in st.session_state:st.session_state['pending_orders']=[]
 if 'near_opt_df' not in st.session_state:st.session_state['near_opt_df']=[]
+if 'nf_expiry_day' not in st.session_state:st.session_state['nf_expiry_day']=None
 fut_list=st.session_state['fut_list']
 
 def get_token_df():
@@ -55,6 +56,7 @@ def get_token_df():
   token_df=token_df[token_df['expiry']>=now_dt]
   st.session_state['opt_list']=token_df
   st.session_state['stk_opt_list']=stk_tokel_list
+  st.session_state['nf_expiry_day'] = (token_df[(token_df['name'] == 'NIFTY') & (token_df['instrumenttype'] == 'OPTIDX') & (token_df['expiry']>=now_dt)])['expiry'].min()
 if st.session_state['nf_expiry_day']==None:get_token_df()
 
 login_details=st.empty()
