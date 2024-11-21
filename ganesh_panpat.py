@@ -123,9 +123,6 @@ with setting_tb:
       lots_to_trade=st.number_input(label="Lots To Trade",min_value=1, max_value=10, value=1, step=None)
     with ind_col4:
       st.write('Expiry Dates:')
-      st.write(f"Bank Nifty: {st.session_state['bnf_expiry_day']}")
-      st.write(f"Nifty: {st.session_state['nf_expiry_day']}")
-      st.write(f"SENSEX: {st.session_state['sensex_expiry_day']}")
 with token_tb:
     token_df=st.empty()
     token_df=st.dataframe(st.session_state['opt_list'],hide_index=True)
@@ -552,45 +549,35 @@ def calculate_indicator(df):
     logger.info(f"Error in calculate Indicator: {e}")
     return df
 
-def getTokenInfo(symbol, exch_seg ='NFO',instrumenttype='OPTIDX',strike_price = 0,pe_ce = 'CE',expiry_day = None):
-  try:
-    token_df=st.session_state['opt_list']
-    if exch_seg == 'NSE' or exch_seg == 'BSE': return token_df[(token_df['exch_seg'] == exch_seg) & (token_df['name'] == symbol)]
-    elif (instrumenttype == 'FUTSTK') or (instrumenttype == 'FUTIDX'):
-        return token_df[(token_df['instrumenttype'] == instrumenttype) & (token_df['name'] == symbol)].sort_values(by=['expiry'], ascending=True)
-    elif (instrumenttype == 'OPTSTK' or instrumenttype == 'OPTIDX'):
-      return (token_df[(token_df['name'] == symbol) & (token_df['expiry']==expiry_day) &
-                    (token_df['instrumenttype'] == instrumenttype) & (token_df['strike'] == strike_price*100) &
-                    (token_df['symbol'].str.endswith(pe_ce))].sort_values(by=['expiry']))
-  except Exception as e:return None
+def getTokenInfo(symbol, exch_seg ='NFO',strike_price = 0,pe_ce = 'CE'):
+  filter_df=token_df[(token_df['name'] == symbol)]
+  if exch_seg == 'NSE' or exch_seg == 'BSE': 
+    filter_df=filter_df[(filter_df['exch_seg'] == exch_seg)]
+  elif exch_seg=="NFO" or exch_seg=="BFO":
+    expiry_day = (filter_df[((filter_df['instrumenttype'] == 'OPTSTK') | (filter_df['instrumenttype'] == 'OPTIDX'))])['expiry'].min()
+    filter_df = filter_df[((filter_df['instrumenttype'] == 'OPTSTK') | (filter_df['instrumenttype'] == 'OPTIDX'))]
+    filter_df = filter_df[filter_df['expiry'] == expiry_day]
+    filter_df=filter_df[((filter_df['exch_seg'] == exch_seg)  & filter_df['symbol'].str.endswith(pe_ce))]
+    filter_df = filter_df[filter_df['strike'] >= strike_price*100]
+  return filter_df
 
 def get_ce_pe_data(symbol,indexLtp="-"):
   indexLtp=float(indexLtp) if indexLtp!="-" else get_ltp_price(symbol)
   # ATM
   if symbol=='BANKNIFTY' or symbol=='^NSEBANK':
     symbol='BANKNIFTY'
-    indexLtp = math.floor(indexLtp/100)*100
-    expiry_day=st.session_state['bnf_expiry_day']
     exch_seg="NFO"
   elif symbol=='NIFTY' or symbol=='^NSEI':
     symbol='NIFTY'
-    val2 = math.fmod(indexLtp, 50)
-    val3 = 50 if val2 >= 25 else 0
-    indexLtp = indexLtp - val2 + val3
-    expiry_day=st.session_state['nf_expiry_day']
     exch_seg="NFO"
   elif symbol=="SENSEX" or symbol=="^BSESN":
     symbol='SENSEX'
-    indexLtp = math.floor(indexLtp/100)*100
-    expiry_day=st.session_state['sensex_expiry_day']
     exch_seg="BFO"
   else:
-    expiry_day=st.session_state['monthly_expiry_day']
     exch_seg="NFO"
-    instrumenttype='OPTSTK'
   #CE,#PE
-  ce_strike_symbol = getTokenInfo(symbol,exch_seg,instrumenttype,indexLtp,'CE',expiry_day).iloc[0]
-  pe_strike_symbol = getTokenInfo(symbol,exch_seg,instrumenttype,indexLtp,'PE',expiry_day).iloc[0]
+  ce_strike_symbol = getTokenInfo(symbol, exch_seg =exch_seg,strike_price = indexLtp,pe_ce = 'CE').iloc[0]
+  pe_strike_symbol = getTokenInfo(symbol, exch_seg =exch_seg,strike_price = indexLtp,pe_ce = 'PE').iloc[0]
   return indexLtp, ce_strike_symbol,pe_strike_symbol
 
 def get_sl_tgt(ltp_price,indicator_strategy):
