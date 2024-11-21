@@ -37,6 +37,9 @@ if 'orderbook' not in st.session_state:st.session_state['orderbook']=[]
 if 'pending_orders' not in st.session_state:st.session_state['pending_orders']=[]
 if 'near_opt_df' not in st.session_state:st.session_state['near_opt_df']=[]
 if 'nf_expiry_day' not in st.session_state:st.session_state['nf_expiry_day']=None
+if 'bnf_expiry_day' not in st.session_state: st.session_state['bnf_expiry_day']=None
+if 'sensex_expiry_day' not in st.session_state: st.session_state['sensex_expiry_day']=None
+if 'monthly_expiry_day' not in st.session_state: st.session_state['monthly_expiry_day']=None
 fut_list=st.session_state['fut_list']
 
 def get_token_df():
@@ -373,12 +376,6 @@ def get_historical_data(symbol="-",interval='5m',token="-",exch_seg="-",candle_t
     if (symbol=="^NSEI" or symbol=="NIFTY") : symbol_i,token,exch_seg="^NSEI",99926000,"NSE"
     elif (symbol=="^NSEBANK" or symbol=="BANKNIFTY") : symbol_i,token,exch_seg="^NSEBANK",99926009,"NSE"
     elif (symbol=="^BSESN" or symbol=="SENSEX") : symbol_i,token,exch_seg="^BSESN",99919000,"BSE"
-    elif symbol=="RELIANCE" : symbol_i,token,exch_seg="RELIANCE-EQ",2885,"NSE"
-    elif symbol=="TCS" : symbol_i,token,exch_seg="TCS-EQ",11536,"NSE"
-    elif symbol=="SAIL" : symbol_i,token,exch_seg="SAIL-EQ",2963,"NSE"
-    elif symbol=="SBIN" : symbol_i,token,exch_seg="SBIN-EQ",3045,"NSE"
-    elif symbol=="HDFCBANK" : symbol_i,token,exch_seg="HDFCBANK-EQ",1333,"NSE"
-    elif symbol=="TRENT" : symbol_i,token,exch_seg="TRENT-EQ",1964,"NSE"
     if (interval=="5m" or interval=='FIVE_MINUTE'): period,delta_time,agl_interval,yf_interval=5,5,"FIVE_MINUTE","5m"
     elif (interval=="1m" or interval=='ONE_MINUTE') : period,delta_time,agl_interval,yf_interval=1,1,"ONE_MINUTE","1m"
     elif (interval=="15m" or interval=='FIFTEEN_MINUTE'): period,delta_time,agl_interval,yf_interval=5,15,"FIFTEEN_MINUTE","15m"
@@ -686,9 +683,9 @@ def close_options_position(position,nf_5m_trade_end="-",bnf_5m_trade_end="-",sen
     except Exception as e:
       logger.info(f"Error in Close index trade: {e}")
 
-def index_trade(symbol,interval):
+def index_trade(symbol,interval="5m",token="-",exch_seg="NSE"):
   try:
-    fut_data=get_historical_data(symbol=symbol,interval=interval,token="-",exch_seg="-",candle_type="NORMAL")
+    fut_data=get_historical_data(symbol=symbol,interval=interval,token=token,exch_seg=exch_seg,candle_type="NORMAL")
     if fut_data is None: return None
     trade=str(fut_data['Trade'].values[-1])
     information={'Time':str(datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)),
@@ -727,13 +724,13 @@ def get_near_options(symbol,index_ltp,symbol_expiry):
 
 def all_near_options():
   df=pd.DataFrame()
-  for symbol in index_list:
+  for symbol in ['NIFTY','BANKNIFTY','SENSEX','TCS','RELIANCE','SAIL','SBIN']:
     try:
       index_ltp=get_ltp_price(symbol)
       if symbol=="NIFTY":symbol_expiry=st.session_state['nf_expiry_day']
       elif symbol=="BANKNIFTY":symbol_expiry=st.session_state['bnf_expiry_day']
       elif symbol=="SENSEX":symbol_expiry=st.session_state['sensex_expiry_day']
-      else:symbol_expiry="-"
+      else:symbol_expiry=symbol_expiry=st.session_state['monthly_expiry_day']
       option_list=get_near_options(symbol,index_ltp,symbol_expiry)
       df=pd.concat([df,option_list])
     except Exception as e:print(e)
