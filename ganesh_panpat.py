@@ -46,10 +46,10 @@ def get_token_df():
   token_df = token_df.astype({'strike': float})
   token_df = token_df.sort_values(by=['name', 'strike'])
 
-  stk_tokel_list=token_df[token_df['name'].isin(fut_list)]
-  stk_tokel_list=stk_tokel_list[((stk_tokel_list['exch_seg'] == 'NSE')|
-                                  (stk_tokel_list['exch_seg'] == 'BSE'))]
-  stk_tokel_list = stk_tokel_list[stk_tokel_list['symbol'].str.endswith('-EQ')]
+  stk_token_list=token_df[token_df['name'].isin(fut_list)]
+  stk_token_list=stk_token_list[((stk_token_list['exch_seg'] == 'NSE')|
+                                  (stk_token_list['exch_seg'] == 'BSE'))]
+  stk_token_list = stk_token_list[stk_token_list['symbol'].str.endswith('-EQ')]
   
   now_dt=datetime.datetime.now(tz=gettz('Asia/Kolkata')).date()-datetime.timedelta(days=0)
   token_df=token_df[token_df['expiry']>=now_dt]
@@ -62,7 +62,7 @@ login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_s
 index_ltp_string=st.empty()
 index_ltp_string.text(f"Index Ltp: ")
 log_tb, order_tb, position_tb, open_odr_tb, setting_tb, token_tb, stk_token_tb, back_test_tb, near_opt_tb= st.tabs(["Log","Order Book", "Position",
-                "Open Order", "Settings","Token List","Stock Token",'Back Test','Near Options'])
+                "Open Order", "Settings","Token List","Stock List",'Back Test','Near Options'])
 
 with log_tb:
   col1,col2=st.columns([1,9])
@@ -129,7 +129,7 @@ with token_tb:
     token_df=st.dataframe(st.session_state['opt_list'],hide_index=True)
 with stk_token_tb:
     stk_token_df=st.empty()
-    stk_token_df=st.dataframe(st.session_state['stk_token_list'],hide_index=True)
+    stk_token_df=st.dataframe(st.session_state['stk_opt_list'],hide_index=True)
 with back_test_tb:
   backtest=st.button(label="Back Test")
 with near_opt_tb:
