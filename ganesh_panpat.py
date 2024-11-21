@@ -721,7 +721,7 @@ def get_near_options(symbol,index_ltp,symbol_expiry):
 
 def all_near_options():
   df=pd.DataFrame()
-  for symbol in ['NIFTY','BANKNIFTY','SENSEX','TCS','RELIANCE','SAIL','SBIN']:
+  for symbol in ['NIFTY','BANKNIFTY','SENSEX']:
     try:
       index_ltp=get_ltp_price(symbol)
       if symbol=="NIFTY":symbol_expiry=st.session_state['nf_expiry_day']
