@@ -175,20 +175,10 @@ else:
 def place_order(token,symbol,qty,buy_sell,ordertype='MARKET',price=0,variety='NORMAL',exch_seg='NFO',producttype='CARRYFORWARD',
                 triggerprice=0,squareoff=0,stoploss=0,ordertag='-'):
   try:
-    orderparams = {"variety": variety,
-                   "tradingsymbol": symbol,
-                   "symboltoken": token,
-                   "transactiontype": buy_sell,
-                   "exchange": exch_seg,
-                   "ordertype": ordertype,
-                   "producttype": producttype,
-                   "duration": "DAY",
-                   "price": int(float(price)),
-                   "squareoff":int(float(squareoff)),
-                   "stoploss": int(float(stoploss)),
-                   "quantity": str(qty),
-                   "triggerprice":int(float(triggerprice)),
-                   "ordertag":ordertag,"trailingStopLoss":5}
+    orderparams = {"variety": variety,"tradingsymbol": symbol,"symboltoken": token,"transactiontype": buy_sell,
+                   "exchange": exch_seg,"ordertype": ordertype,"producttype": producttype,"duration": "DAY",
+                   "price": (float(price)),"squareoff":(float(squareoff)),"stoploss": (float(stoploss)),
+                   "quantity": str(qty),"triggerprice":(float(triggerprice)),"ordertag":ordertag,"trailingStopLoss":5}
     orderId=obj.placeOrder(orderparams)
     return orderId
   except Exception as e:
@@ -261,6 +251,7 @@ def get_ltp_price(symbol="-",token="-",exch_seg='-'):
     if symbol=="BANKNIFTY" or symbol=="^NSEBANK": symbol_i="^NSEBANK";token='99926009';exch_seg='NSE'
     elif symbol=="NIFTY" or symbol=="^NSEI": symbol_i="^NSEI";token='99926000';exch_seg='NSE'
     elif symbol=="SENSEX" or symbol=="^BSESN": symbol_i="^BSESN";token='99919000';exch_seg='BSE'
+    if symbol in ['TCS','RELIANCE','HDFCBANK','SAIL','SBIN','TRENT']:symbol_i=symbol + ".NS"
     if symbol_i!="-":ltp=get_yf_ltp(symbol=symbol_i,token=token,exch_seg=exch_seg)
     if ltp=="Unable to get LTP":ltp=get_angel_ltp(symbol=symbol,token=token,exch_seg=exch_seg)
     return ltp
@@ -389,7 +380,7 @@ def get_historical_data(symbol="-",interval='5m',token="-",exch_seg="-",candle_t
     if (symbol_i[0]=="^") or symbol[-3:]=='.NS':df=yfna_data(symbol_i,yf_interval,period)
     else:df=angel_data(token,agl_interval,exch_seg,period)
     now=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0, tzinfo=None)
-    if now - df.index[-1] > datetime.timedelta(minutes=5):df=angel_data(token,agl_interval,exch_seg,period)
+    #if now - df.index[-1] > datetime.timedelta(minutes=5):df=angel_data(token,agl_interval,exch_seg,period)
     now=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0, tzinfo=None)
     last_candle=now.replace(second=0, microsecond=0)- datetime.timedelta(minutes=delta_time)
     df = df[(df.index <= last_candle)]
@@ -562,23 +553,27 @@ def getTokenInfo(symbol, exch_seg ='NFO',strike_price = 0,pe_ce = 'CE'):
   return filter_df
 
 def get_ce_pe_data(symbol,indexLtp="-"):
-  indexLtp=float(indexLtp) if indexLtp!="-" else get_ltp_price(symbol)
-  # ATM
-  if symbol=='BANKNIFTY' or symbol=='^NSEBANK':
-    symbol='BANKNIFTY'
-    exch_seg="NFO"
-  elif symbol=='NIFTY' or symbol=='^NSEI':
-    symbol='NIFTY'
-    exch_seg="NFO"
-  elif symbol=="SENSEX" or symbol=="^BSESN":
-    symbol='SENSEX'
-    exch_seg="BFO"
-  else:
-    exch_seg="NFO"
-  #CE,#PE
-  ce_strike_symbol = getTokenInfo(symbol, exch_seg =exch_seg,strike_price = indexLtp,pe_ce = 'CE').iloc[0]
-  pe_strike_symbol = getTokenInfo(symbol, exch_seg =exch_seg,strike_price = indexLtp,pe_ce = 'PE').iloc[0]
-  return indexLtp, ce_strike_symbol,pe_strike_symbol
+  try:
+    indexLtp=float(indexLtp) if indexLtp!="-" else get_ltp_price(symbol)
+    # ATM
+    if symbol=='BANKNIFTY' or symbol=='^NSEBANK':
+      symbol='BANKNIFTY'
+      exch_seg="NFO"
+    elif symbol=='NIFTY' or symbol=='^NSEI':
+      symbol='NIFTY'
+      exch_seg="NFO"
+    elif symbol=="SENSEX" or symbol=="^BSESN":
+      symbol='SENSEX'
+      exch_seg="BFO"
+    else:
+      exch_seg="NFO"
+    #CE,#PE
+    ce_strike_symbol = getTokenInfo(symbol, exch_seg =exch_seg,strike_price = indexLtp,pe_ce = 'CE').iloc[0]
+    pe_strike_symbol = getTokenInfo(symbol, exch_seg =exch_seg,strike_price = indexLtp,pe_ce = 'PE').iloc[0]
+    return indexLtp, ce_strike_symbol,pe_strike_symbol
+  except Exception as e:
+    logger.info(f"error in get_ce_pe_data: {e}")
+    return None,None,None
 
 def get_sl_tgt(ltp_price,indicator_strategy):
   try:
@@ -606,14 +601,16 @@ def buy_option(symbol,indicator_strategy="Manual Buy",interval="5m",index_sl="-"
   try:
     option_token=symbol['token']; option_symbol=symbol['symbol']; exch_seg=symbol['exch_seg']; lotsize=int(symbol['lotsize'])
     ltp_price=round(float(get_ltp_price(symbol=option_symbol,token=option_token,exch_seg=exch_seg)),2)
-    orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='LIMIT',price=ltp_price,
+    orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='LIMIT',price=float(ltp_price),
                           variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=indicator_strategy)
     if str(orderId)=='Order placement failed':
       telegram_bot_sendtext(f'Order Failed Buy: {option_symbol} Indicator {indicator_strategy}')
       return
     try:
       ltp_price=round(float(get_ltp_price(symbol=option_symbol,token=option_token,exch_seg=exch_seg)),2)
-      target_price,stop_loss=get_sl_tgt(ltp_price,indicator_strategy)
+      #target_price,stop_loss=get_sl_tgt(ltp_price,indicator_strategy)
+      stop_loss=int(ltp_price*0.7)
+      target_price=int(ltp_price*1.5)
       indicator_strategy=indicator_strategy+ " LTP:"+str(int(ltp_price))+"("+str(int(stop_loss))+":"+str(int(target_price))+")"
       buy_msg=(f'Buy: {option_symbol}\nLTP: {ltp_price}\n{indicator_strategy}\nTarget: {target_price} Stop Loss: {stop_loss}')
       telegram_bot_sendtext(buy_msg)
@@ -624,11 +621,7 @@ def buy_option(symbol,indicator_strategy="Manual Buy",interval="5m",index_sl="-"
     orders= orderbook[(orderbook['orderid'] == orderId)]
     orders_status=orders.iloc[0]['orderstatus']
     if orders_status== 'complete':
-      if st.session_state['target_order_type']=="Target":
-        place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='SELL',ordertype='LIMIT',price=target_price,
-                    variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=str(orderId)+" Target order Placed")
-      elif st.session_state['target_order_type']=='Stop_Loss':
-        place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='SELL',ordertype='STOPLOSS_LIMIT',price=stop_loss,
+     place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='SELL',ordertype='STOPLOSS_LIMIT',price=stop_loss,
                     variety='STOPLOSS',exch_seg=exch_seg,producttype='CARRYFORWARD',triggerprice=stop_loss,squareoff=stop_loss,
                     stoploss=stop_loss, ordertag=str(orderId)+" Stop Loss order Placed")
   except Exception as e:
@@ -690,8 +683,13 @@ def index_trade(symbol,interval="5m",token="-",exch_seg="NSE"):
   try:
     fut_data=get_historical_data(symbol=symbol,interval=interval,token=token,exch_seg=exch_seg,candle_type="NORMAL")
     if fut_data is None: return None
-    trade=str(fut_data['Trade'].values[-1])
-    trade='Buy'
+    trade=str(fut_data['Trade'].values[-1])'
+    if trade!="-":
+      indicator_strategy=f"{fut_data['Indicator'].values[-1]} [{fut_data['Datetime'].values[-1]}]"
+      indexLtp=fut_data['Close'].values[-1]
+      indexLtp, ce_strike_symbol,pe_strike_symbol=get_ce_pe_data(symbol,indexLtp=indexLtp)
+      if trade=="Buy" : buy_option(ce_strike_symbol,indicator_strategy,interval)
+      elif trade=="Sell" : buy_option(pe_strike_symbol,indicator_strategy,interval)
     information={'Time':str(datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)),
                 'Symbol':symbol,
                 'Datetime':str(fut_data['Datetime'].values[-1]),'Close':fut_data['Close'].values[-1],
@@ -703,12 +701,6 @@ def index_trade(symbol,interval="5m",token="-",exch_seg="NSE"):
                 'RSI':fut_data['RSI'].values[-1],
                 'VWAP':fut_data['VWAP'].values[-1]}
     st.session_state['options_trade_list'].append(information)
-    if trade!="-":
-      indicator_strategy=f"{fut_data['Indicator'].values[-1]} [{fut_data['Datetime'].values[-1]}]"
-      indexLtp=fut_data['Close'].values[-1]
-      indexLtp, ce_strike_symbol,pe_strike_symbol=get_ce_pe_data(symbol,indexLtp=indexLtp)
-      if trade=="Buy" : buy_option(ce_strike_symbol,indicator_strategy,interval)
-      elif trade=="Sell" : buy_option(pe_strike_symbol,indicator_strategy,interval)
     st.session_state['index_trade_end'][symbol+"_"+interval] = trade
   except Exception as e:
     logger.info(f"error in index_trade: {e}")
