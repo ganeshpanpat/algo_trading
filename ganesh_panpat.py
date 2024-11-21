@@ -55,7 +55,7 @@ def get_token_df():
   now_dt=datetime.datetime.now(tz=gettz('Asia/Kolkata')).date()-datetime.timedelta(days=0)
   token_df=token_df[token_df['expiry']>=now_dt]
   st.session_state['opt_list']=token_df
-  st.session_state['stk_opt_list']=stk_tokel_list
+  st.session_state['stk_opt_list']=stk_token_list
   st.session_state['nf_expiry_day'] = (token_df[(token_df['name'] == 'NIFTY') & (token_df['instrumenttype'] == 'OPTIDX') & (token_df['expiry']>=now_dt)])['expiry'].min()
 if st.session_state['nf_expiry_day']==None:get_token_df()
 
