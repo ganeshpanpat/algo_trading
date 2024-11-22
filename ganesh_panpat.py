@@ -543,6 +543,7 @@ def calculate_indicator(df):
     return df
 
 def getTokenInfo(symbol, exch_seg ='NFO',strike_price = 0,pe_ce = 'CE'):
+  token_df=st.session_state['opt_list']
   filter_df=token_df[(token_df['name'] == symbol)]
   if exch_seg == 'NSE' or exch_seg == 'BSE': 
     filter_df=filter_df[(filter_df['exch_seg'] == exch_seg)]
@@ -686,6 +687,7 @@ def index_trade(symbol,interval="5m",token="-",exch_seg="NSE"):
     fut_data=get_historical_data(symbol=symbol,interval=interval,token=token,exch_seg=exch_seg,candle_type="NORMAL")
     if fut_data is None: return None
     trade=str(fut_data['Trade'].values[-1])
+    trade="Buy"
     if trade!="-":
       indicator_strategy=f"{fut_data['Indicator'].values[-1]} [{fut_data['Datetime'].values[-1]}]"
       indexLtp=fut_data['Close'].values[-1]
