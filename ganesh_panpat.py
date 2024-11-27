@@ -179,6 +179,7 @@ def place_order(token,symbol,qty,buy_sell,ordertype='MARKET',price=0,variety='NO
                    "exchange": exch_seg,"ordertype": ordertype,"producttype": producttype,"duration": "DAY",
                    "price": (float(price)),"squareoff":(float(squareoff)),"stoploss": (float(stoploss)),
                    "quantity": str(qty),"triggerprice":(float(triggerprice)),"ordertag":ordertag,"trailingStopLoss":5}
+    logger.info(orderparams)
     orderId=obj.placeOrder(orderparams)
     return orderId
   except Exception as e:
@@ -602,9 +603,12 @@ def get_sl_tgt(ltp_price,indicator_strategy):
 
 def buy_option(symbol,indicator_strategy="Manual Buy",interval="5m",index_sl="-"):
   try:
-    option_token=symbol['token']; option_symbol=symbol['symbol']; exch_seg=symbol['exch_seg']; lotsize=int(symbol['lotsize'])
-    #ltp_price=round(float(get_ltp_price(symbol=option_symbol,token=option_token,exch_seg=exch_seg)),2)
-    orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='MARKET',price=float(0),
+    option_token=symbol['token'];
+    option_symbol=symbol['symbol'];
+    exch_seg=symbol['exch_seg'];
+    lotsize=int(symbol['lotsize'])
+    ltp_price=float(get_ltp_price(symbol=option_symbol,token=option_token,exch_seg=exch_seg))
+    orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='MARKET',price=str(ltp_price),
                           variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=indicator_strategy)
     if str(orderId)=='Order placement failed':
       telegram_bot_sendtext(f'Order Failed Buy: {option_symbol} Indicator {indicator_strategy}')
