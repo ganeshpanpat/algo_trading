@@ -692,7 +692,7 @@ def index_trade(symbol,interval="5m",token="-",exch_seg="NSE"):
     if fut_data is None: return None
     trade=str(fut_data['Trade'].values[-1])
     if trade!="-":
-      indicator_strategy=f"{fut_data['Indicator'].values[-1]} [{fut_data['Datetime'].values[-1]}]"
+      indicator_strategy=f"{fut_data['Indicator'].values[-1]}"
       indexLtp=fut_data['Close'].values[-1]
       indexLtp, ce_strike_symbol,pe_strike_symbol=get_ce_pe_data(symbol,indexLtp=indexLtp)
       if trade=="Buy" : buy_option(ce_strike_symbol,indicator_strategy,interval)
