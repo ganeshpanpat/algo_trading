@@ -616,11 +616,13 @@ def buy_option(symbol,indicator_strategy="Manual Buy",interval="5m",index_sl="-"
     option_symbol=symbol['symbol'];
     exch_seg=symbol['exch_seg'];
     lotsize=int(symbol['lotsize'])
-    orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='MARKET',price=str(0),
+    if option_symbol.startswith('NIFTY') or option_symbol.startswith('BANKNIFTY') or option_symbol.startswith('SENSEX'):
+      orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='MARKET',price=str(0),
                           variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=indicator_strategy)
-    #ltp_price=float(get_ltp_price(symbol=option_symbol,token=option_token,exch_seg=exch_seg))
-    #orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='LIMIT',price=str(ltp_price),
-    #                      variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=indicator_strategy)
+    else:
+      ltp_price=float(get_ltp_price(symbol=option_symbol,token=option_token,exch_seg=exch_seg))
+      orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='LIMIT',price=str(ltp_price),
+                          variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=indicator_strategy)
     if str(orderId)=='Order placement failed':
       telegram_bot_sendtext(f'Order Failed Buy: {option_symbol} Indicator {indicator_strategy}')
       return
