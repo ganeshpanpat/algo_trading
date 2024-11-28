@@ -45,6 +45,7 @@ fut_list=st.session_state['fut_list']
 def get_token_df():
   url = 'https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json'
   d = requests.get(url).json()
+  print(d)
   token_df = pd.DataFrame.from_dict(d)
   token_df['expiry'] = pd.to_datetime(token_df['expiry']).apply(lambda x: x.date())
   token_df = token_df.astype({'strike': float})
