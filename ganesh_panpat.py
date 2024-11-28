@@ -427,7 +427,10 @@ def get_trade_info(df):
         elif time_frame == "15m":indicator_list = []
         elif time_frame == "1m":indicator_list = one_opt_buy_indicator
         else:indicator_list = ['ST_7_3 Trade', 'ST_10_2 Trade', 'TEMA_EMA_9 Trade', 'RSI_60 Trade']
-    
+    elif symbol_type=="STK":
+      indicator_list=five_stk_buy_indicator
+    else:indicator_list = ['ST_7_3 Trade', 'ST_10_2 Trade']
+      
     df['Indicator'] = symbol_type
     df['Trade'] = "-"
     df['Trade End'] = "-"
