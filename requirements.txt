@@ -7,6 +7,6 @@ yfinance==0.2.9
 pandas_ta
 smartapi-python
 websocket-client
-requests
+requests==2.32.3
 pyotp
 logzero
