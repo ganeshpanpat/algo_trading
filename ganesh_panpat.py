@@ -411,7 +411,12 @@ def get_trade_info(df):
     for col in trade_columns:df[col] = '-'
     time_frame = df['Time Frame'][0]
     Symbol = df['Symbol'][0]
-    symbol_type = "IDX" if Symbol in ["^NSEBANK", "BANKNIFTY", "^NSEI", "NIFTY", "SENSEX", "^BSESN"] else "OPT"
+    if Symbol in ["^NSEBANK", "BANKNIFTY", "^NSEI", "NIFTY", "SENSEX", "^BSESN"] :
+      symbol_type = "IDX"
+    elif Symbol in fut_list:
+      symbol_type="STK"
+    else:
+      symbol_type= "OPT"
     indicator_list = []
     if symbol_type == "IDX":
         if time_frame == "5m":indicator_list = five_buy_indicator
@@ -872,9 +877,9 @@ def sub_loop_code(now_minute):
 def loop_code():
   now = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
   marketopen = now.replace(hour=9, minute=20, second=0, microsecond=0)
-  marketclose = now.replace(hour=15, minute=48, second=0, microsecond=0)
-  int_marketclose = now.replace(hour=15, minute=51, second=0, microsecond=0)
-  day_end = now.replace(hour=15, minute=30, second=0, microsecond=0)
+  marketclose = now.replace(hour=23, minute=48, second=0, microsecond=0)
+  int_marketclose = now.replace(hour=23, minute=51, second=0, microsecond=0)
+  day_end = now.replace(hour=23, minute=30, second=0, microsecond=0)
   if algo_state==False:return
   all_near_options()
   while now < day_end:
