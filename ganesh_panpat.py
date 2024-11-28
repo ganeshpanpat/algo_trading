@@ -104,15 +104,16 @@ with setting_tb:
                   'Two Candle Theory','Multi Time ST Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade']
   with ind_col1:
     index_list=st.multiselect('Select Index',['NIFTY','BANKNIFTY','SENSEX','FINNIFTY'],['BANKNIFTY', 'NIFTY', 'SENSEX'])
+    fut_list=st.multiselect('Select Future',['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'],['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'])
     time_frame_interval = st.multiselect('Select Time Frame',['IDX:5M','IDX:15M','IDX:1M','OPT:5M','OPT:1M','GTT:5M','STK:5M'],['IDX:5M','OPT:5M','STK:5M'])
     five_buy_indicator = st.multiselect('5M Indicator',indicator_list,['MA_50_ST Trade','ST_7_3 Trade', 'ST_10_2 Trade'])
     five_opt_buy_indicator = st.multiselect('5M OPT Indicator',indicator_list,['MA_50_ST Trade','ST_7_3 Trade', 'ST_10_2 Trade'])
+    five_stk_buy_indicator = st.multiselect('5M STK Indicator',indicator_list,['MA_50_ST Trade','ST_7_3 Trade'])
     gtt_indicator=st.multiselect('GTT Indicator',['5M_ST','5M_ST_10_2','1M_10_1','1M_10_2'],['5M_ST','5M_ST_10_2'])
     one_buy_indicator = st.multiselect('1M Indicator',indicator_list,[])
     one_opt_buy_indicator = st.multiselect('1M OPT Indicator',indicator_list,[])
     fifteen_buy_indicator = st.multiselect('15M Indicator',indicator_list,['MA_50_ST Trade'])
     three_buy_indicator = st.multiselect('3M Indicator',indicator_list,[])
-    fut_list=st.multiselect('Select Future',['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'],['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'])
     with ind_col2:
       target_order_type = st.selectbox('Target Order',('Target', 'Stop_Loss', 'NA'),1)
       target_type = st.selectbox('Target Type',('Points', 'Per Cent','Indicator','ATR'),3)
