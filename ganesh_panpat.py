@@ -103,7 +103,7 @@ with setting_tb:
                   'DI Trade','MA Trade','EMA Trade','EMA_5_7 Trade','MA 21 Trade','HMA Trade','RSI_60 Trade','EMA_High_Low Trade',
                   'Two Candle Theory','Multi Time ST Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade']
   with ind_col1:
-    index_list=st.multiselect('Select Index',['NIFTY','BANKNIFTY','SENSEX','FINNIFTY'],['BANKNIFTY', 'NIFTY', 'SENSEX'])
+    index_list=st.multiselect('Select Index',['NIFTY','BANKNIFTY','SENSEX','FINNIFTY'],['NIFTY', 'SENSEX'])
     fut_list=st.multiselect('Select Future',['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'],['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'])
     time_frame_interval = st.multiselect('Select Time Frame',['IDX:5M','IDX:15M','IDX:1M','OPT:5M','OPT:1M','GTT:5M','STK:5M'],['IDX:5M','OPT:5M','STK:5M'])
     five_buy_indicator = st.multiselect('5M Indicator',indicator_list,['MA_50_ST Trade','ST_7_3 Trade', 'ST_10_2 Trade'])
@@ -411,12 +411,9 @@ def get_trade_info(df):
     for col in trade_columns:df[col] = '-'
     time_frame = df['Time Frame'][0]
     Symbol = df['Symbol'][0]
-    if Symbol in ["^NSEBANK", "BANKNIFTY", "^NSEI", "NIFTY", "SENSEX", "^BSESN"] :
-      symbol_type = "IDX"
-    elif Symbol in fut_list:
-      symbol_type="STK"
-    else:
-      symbol_type= "OPT"
+    if Symbol in ["^NSEBANK", "BANKNIFTY", "^NSEI", "NIFTY", "SENSEX", "^BSESN"] : symbol_type = "IDX"
+    elif Symbol in fut_list: symbol_type="STK"
+    else: symbol_type= "OPT"
     indicator_list = []
     if symbol_type == "IDX":
         if time_frame == "5m":indicator_list = five_buy_indicator
@@ -615,7 +612,7 @@ def buy_option(symbol,indicator_strategy="Manual Buy",interval="5m",index_sl="-"
     option_token=symbol['token'];
     option_symbol=symbol['symbol'];
     exch_seg=symbol['exch_seg'];
-    lotsize=int(symbol['lotsize'])
+    lotsize=str(int(symbol['lotsize']))
     if option_symbol.startswith('NIFTY') or option_symbol.startswith('BANKNIFTY') or option_symbol.startswith('SENSEX'):
       orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='MARKET',price=str(0),
                           variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=indicator_strategy)
@@ -704,7 +701,7 @@ def index_trade(symbol,interval="5m",token="-",exch_seg="NSE"):
     fut_data=get_historical_data(symbol=symbol,interval=interval,token=token,exch_seg=exch_seg,candle_type="NORMAL")
     if fut_data is None: return None
     trade=str(fut_data['Trade'].values[-1])
-    #trade="Buy"
+    trade="Buy"
     if trade!="-":
       indicator_strategy=f"{fut_data['Indicator'].values[-1]}"
       indexLtp=fut_data['Close'].values[-1]
