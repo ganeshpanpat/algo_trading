@@ -425,7 +425,7 @@ def get_trade_info(df):
         elif time_frame == "1m":indicator_list = one_opt_buy_indicator
         else:indicator_list = ['ST_7_3 Trade', 'ST_10_2 Trade', 'TEMA_EMA_9 Trade', 'RSI_60 Trade']
     elif symbol_type=="STK":
-      indicator_list=five_stk_buy_indicator
+      indicator_list=five_buy_indicator
     else:indicator_list = ['ST_7_3 Trade', 'ST_10_2 Trade']
       
     df['Indicator'] = symbol_type
@@ -701,7 +701,7 @@ def index_trade(symbol,interval="5m",token="-",exch_seg="NSE"):
     fut_data=get_historical_data(symbol=symbol,interval=interval,token=token,exch_seg=exch_seg,candle_type="NORMAL")
     if fut_data is None: return None
     trade=str(fut_data['Trade'].values[-1])
-    trade="Buy"
+    trade="Sell"
     if trade!="-":
       indicator_strategy=f"{fut_data['Indicator'].values[-1]}"
       indexLtp=fut_data['Close'].values[-1]
