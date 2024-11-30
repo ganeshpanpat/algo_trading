@@ -712,7 +712,7 @@ def index_trade(symbol,interval="5m",token="-",exch_seg="NSE"):
                 'Symbol':symbol,
                 'Datetime':str(fut_data['Datetime'].values[-1]),'Close':fut_data['Close'].values[-1],
                 'Indicator':fut_data['Indicator'].values[-1],
-                'Trade':fut_data['Trade'].values[-1],
+                'Trade':trade,
                 'Trade End':fut_data['Trade End'].values[-1],
                 'Supertrend':fut_data['Supertrend'].values[-1],
                 'Supertrend_10_2':fut_data['Supertrend_10_2'].values[-1],
