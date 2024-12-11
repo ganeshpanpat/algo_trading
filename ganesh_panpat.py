@@ -689,6 +689,8 @@ def loop_code():
   marketclose = now.replace(hour=14, minute=48, second=0, microsecond=0)
   int_marketclose = now.replace(hour=14, minute=51, second=0, microsecond=0)
   day_end = now.replace(hour=15, minute=30, second=0, microsecond=0)
+  orderbook,pending_orders=get_order_book()
+  position,open_position=get_open_position()
   if algo_state==False:return
   all_near_options()
   while now < day_end:
