@@ -716,7 +716,6 @@ def loop_code():
 
 if __name__ == "__main__":
   try:
-    pass
     loop_code()
   except Exception as e:
     st.error(f"An error occurred: {e}")
