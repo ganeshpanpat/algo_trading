@@ -22,7 +22,7 @@ st.markdown("""
     .block-container {padding-top: 2rem;padding-bottom: 0rem;padding-left: 2rem;padding-right: 2rem;}
   </style>
   """, unsafe_allow_html=True)
-st.header("Welcome To Algo Trading")
+st.text("Welcome To Algo Trading")
 
 if 'Logged_in' not in st.session_state:st.session_state['Logged_in']="Guest"
 if 'login_time' not in st.session_state:st.session_state['login_time']="login_time"
