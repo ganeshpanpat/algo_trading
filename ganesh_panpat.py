@@ -219,7 +219,7 @@ def place_order(token,symbol,qty,buy_sell,ordertype='MARKET',price=0,variety='NO
                    "stoploss": (float(stoploss)),"quantity": str(qty),
                    "triggerprice":(float(triggerprice)),"ordertag":ordertag,"trailingStopLoss":5}
 
-    orderparams =  "variety": "NORMAL", "tradingsymbol": symbol,
+    orderparams =  {"variety": "NORMAL", "tradingsymbol": symbol,
             "symboltoken": str(token), "transactiontype": buy_sell,
             "exchange": exch_seg, "ordertype": ordertype,
             "producttype": "CARRYFORWARD", "duration": "DAY",
