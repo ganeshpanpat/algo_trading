@@ -218,6 +218,13 @@ def place_order(token,symbol,qty,buy_sell,ordertype='MARKET',price=0,variety='NO
                    "price": (float(price)),"squareoff":(float(squareoff)),
                    "stoploss": (float(stoploss)),"quantity": str(qty),
                    "triggerprice":(float(triggerprice)),"ordertag":ordertag,"trailingStopLoss":5}
+
+    orderparams =  "variety": "NORMAL", "tradingsymbol": symbol,
+            "symboltoken": str(token), "transactiontype": buy_sell,
+            "exchange": exch_seg, "ordertype": ordertype,
+            "producttype": "CARRYFORWARD", "duration": "DAY",
+            "price": str(price), "squareoff": "0",
+            "stoploss": "0", "quantity": str(qty)}
     orderId=obj.placeOrder(orderparams)
     return orderId
   except Exception as e:
