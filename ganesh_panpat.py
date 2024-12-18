@@ -614,6 +614,7 @@ def buy_option(symbol,indicator_strategy="Manual Buy",interval="5m",index_sl="-"
                     stoploss=stop_loss, ordertag=str(orderId)+" Stop Loss order Placed")
   except Exception as e:
     logger.info(f"Error in buy_option: {e}")
+    telegram_bot_sendtext(f"Error in buy_option: {e}")
 
 def index_trade(idx_symbol,interval="5m",token="-",exch_seg="NSE",expiry="-"):
   try:
