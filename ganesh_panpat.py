@@ -601,13 +601,14 @@ def buy_option(symbol,indicator_strategy="Manual Buy",interval="5m",index_sl="-"
       target_price=int(ltp_price*1.5)
       indicator_strategy=indicator_strategy+ " LTP:"+str(int(ltp_price))+"("+str(int(stop_loss))+":"+str(int(target_price))+")"
       buy_msg=(f'Buy: {option_symbol}\nLTP: {ltp_price}\n{indicator_strategy}\nTarget: {target_price} Stop Loss: {stop_loss}')
-      telegram_bot_sendtext(buy_msg)
+      
     except:
       ltp_price=0
     orderbook=obj.orderBook()['data']
     orderbook=pd.DataFrame(orderbook)
     orders= orderbook[(orderbook['orderid'] == orderId)]
     orders_status=orders.iloc[0]['orderstatus']
+    telegram_bot_sendtext(buy_msg+"\nOrder Status:" + orders_status)
     if orders_status== 'complete':
      place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='SELL',ordertype='STOPLOSS_LIMIT',price=stop_loss,
                     variety='STOPLOSS',exch_seg=exch_seg,producttype='CARRYFORWARD',triggerprice=stop_loss,squareoff=stop_loss,
