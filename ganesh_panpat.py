@@ -71,7 +71,7 @@ with open_odr_tb:
 
 with setting_tb:
   ind_col1,ind_col2=st.columns([5,1.5])
-  indicator_list=['TEMA_EMA_9 Trade','MA_50_ST Trade','ST_7_3 Trade', 'ST_10_2 Trade','ST_10_1 Trade','RSI MA Trade','RSI_60 Trade','MACD Trade','PSAR Trade',
+  indicator_list=['TEMA_EMA_9 Trade','MA_50_ST Trade','ST_7_3 Trade', 'ST_10_2 Trade','ST_10_1 BB Trade','ST_10_1 Trade','RSI MA Trade','RSI_60 Trade','MACD Trade','PSAR Trade',
                   'DI Trade','MA Trade','EMA Trade','EMA_5_7 Trade','MA 21 Trade','HMA Trade','RSI_60 Trade','EMA_High_Low Trade',
                   'Two Candle Theory','Multi Time ST Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade']
   with ind_col1:
@@ -79,12 +79,12 @@ with setting_tb:
     fut_list=st.multiselect('Select Future',['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'],['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'])
     time_frame_interval = st.multiselect('Select Time Frame',['IDX:5M','IDX:15M','IDX:1M','OPT:5M','OPT:1M','GTT:5M','STK:5M'],['IDX:5M','OPT:5M','STK:5M'])
     five_buy_indicator = st.multiselect('5M Indicator',indicator_list,['ST_7_3 Trade'])
-    five_opt_buy_indicator = st.multiselect('5M OPT Indicator',indicator_list,['ST_7_3 Trade'])
-    five_stk_buy_indicator = st.multiselect('5M STK Indicator',indicator_list,['MA_50_ST Trade','ST_7_3 Trade'])
+    five_opt_buy_indicator = st.multiselect('5M OPT Indicator',indicator_list,['ST_10_1 BB Trade'])
+    five_stk_buy_indicator = st.multiselect('5M STK Indicator',indicator_list,[])
     gtt_indicator=st.multiselect('GTT Indicator',['5M_ST','5M_ST_10_2','1M_10_1','1M_10_2'],['5M_ST','5M_ST_10_2'])
     one_buy_indicator = st.multiselect('1M Indicator',indicator_list,[])
     one_opt_buy_indicator = st.multiselect('1M OPT Indicator',indicator_list,[])
-    fifteen_buy_indicator = st.multiselect('15M Indicator',indicator_list,['MA_50_ST Trade'])
+    fifteen_buy_indicator = st.multiselect('15M Indicator',indicator_list,[])
     three_buy_indicator = st.multiselect('3M Indicator',indicator_list,[])
     with ind_col2:
       lots_to_trade=st.number_input(label="Lots To Trade",min_value=1, max_value=10, value=1, step=None)
@@ -392,7 +392,7 @@ def get_trade_info(df):
     trade_columns = ['ST_7_3 Trade','MACD Trade','PSAR Trade','DI Trade','MA Trade','EMA Trade','BB Trade','Trade','Trade End',
                      'Rainbow MA','Rainbow Trade','MA 21 Trade','ST_10_2 Trade','Two Candle Theory','HMA Trade','VWAP Trade',
                      'EMA_5_7 Trade','ST_10_4_8 Trade','EMA_High_Low Trade','RSI MA Trade','RSI_60 Trade','ST_10_1 Trade',
-                     'TEMA_EMA_9 Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade','MA_50_ST Trade','MA_50 Trade']
+                     'TEMA_EMA_9 Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade','MA_50_ST Trade','MA_50 Trade','ST_10_1 BB Trade']
     
     for col in trade_columns:df[col] = '-'
     time_frame = df['Time Frame'][0]
@@ -441,6 +441,11 @@ def get_trade_info(df):
           df.loc[i, 'ST_10_1 Trade'] = "Buy"
         elif df.iloc[i-1]['Close'] > df.iloc[i-1]['Supertrend_10_1'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend_10_1']:
           df.loc[i, 'ST_10_1 Trade'] = "Sell"
+
+         if df.iloc[i-1]['Close'] < df.iloc[i-1]['Supertrend_10_1'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend_10_1'] and df.iloc[i]['Close'] > df.iloc[i]['MBB']:
+          df.loc[i, 'ST_10_1 BB Trade'] = "Buy"
+        elif df.iloc[i-1]['Close'] > df.iloc[i-1]['Supertrend_10_1'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend_10_1'] and df.iloc[i]['Close'] < df.iloc[i]['MBB']:
+          df.loc[i, 'ST_10_1 BB Trade'] = "Sell"
 
         if df.iloc[i-1]['Tema_9'] < df.iloc[i-1]['EMA_9'] and df.iloc[i]['Tema_9'] > df.iloc[i]['EMA_9'] and float(df.iloc[i]['RSI']) >= 55:
           df.loc[i, 'TEMA_EMA_9 Trade'] = "Buy"
@@ -492,9 +497,9 @@ def calculate_indicator(df):
     df['RSI_9']=pdta.rsi(df['Close'],timeperiod=9)
     df['WMA_RSI_9']=pdta.wma(df['RSI_9'],length=9)
     df['MA_50']=df['Close'].rolling(50).mean()
-    #df['UBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBU_20_2.0']
-    #df['MBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBM_20_2.0']
-    #df['LBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBL_20_2.0']
+    df['UBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBU_20_2.0']
+    df['MBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBM_20_2.0']
+    df['LBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBL_20_2.0']
     #df['Supertrend_10_4']=pdta.supertrend(high=df['High'],low=df['Low'],close=df['Close'],length=10,multiplier=4)['SUPERT_10_4.0']
     #df['Supertrend_10_8']=pdta.supertrend(high=df['High'],low=df['Low'],close=df['Close'],length=10,multiplier=8)['SUPERT_10_8.0']
     #df['PSAR']=pdta.psar(high=df['High'],low=df['Low'],acceleration=0.02, maximum=0.2)['PSARl_0.02_0.2']
