@@ -442,7 +442,7 @@ def get_trade_info(df):
         elif df.iloc[i-1]['Close'] > df.iloc[i-1]['Supertrend_10_1'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend_10_1']:
           df.loc[i, 'ST_10_1 Trade'] = "Sell"
 
-         if df.iloc[i-1]['Close'] < df.iloc[i-1]['Supertrend_10_1'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend_10_1'] and df.iloc[i]['Close'] > df.iloc[i]['MBB']:
+        if df.iloc[i-1]['Close'] < df.iloc[i-1]['Supertrend_10_1'] and df.iloc[i]['Close'] > df.iloc[i]['Supertrend_10_1'] and df.iloc[i]['Close'] > df.iloc[i]['MBB']:
           df.loc[i, 'ST_10_1 BB Trade'] = "Buy"
         elif df.iloc[i-1]['Close'] > df.iloc[i-1]['Supertrend_10_1'] and df.iloc[i]['Close'] < df.iloc[i]['Supertrend_10_1'] and df.iloc[i]['Close'] < df.iloc[i]['MBB']:
           df.loc[i, 'ST_10_1 BB Trade'] = "Sell"
