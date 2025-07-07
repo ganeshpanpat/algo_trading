@@ -680,11 +680,11 @@ def sub_loop_code(now_time):
   if (now_time.minute%5==0 and "IDX:5M" in time_frame_interval):
     if 'BANKNIFTY' in index_list: index_trade(idx_symbol="BANKNIFTY",interval="5m",token="-",exch_seg="NSE",expiry="-")
     if 'NIFTY' in index_list:index_trade(idx_symbol="NIFTY",interval="5m",token="-",exch_seg="NSE",expiry="-")
-    if 'SENXEX' in index_list:index_trade(idx_symbol="SENSEX",interval="5m",token="-",exch_seg="BSE",expiry="-")
+    if 'SENSEX' in index_list:index_trade(idx_symbol="SENSEX",interval="5m",token="-",exch_seg="BSE",expiry="-")
   if (now_time.minute%15==0 and "IDX:15M" in time_frame_interval):
     if 'BANKNIFTY' in index_list: index_trade(idx_symbol="BANKNIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
     if 'NIFTY' in index_list:index_trade(idx_symbol="NIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
-    if 'SENXEX' in index_list:index_trade(idx_symbol="SENSEX",interval="15m",token="-",exch_seg="BSE",expiry="-")
+    if 'SENSEX' in index_list:index_trade(idx_symbol="SENSEX",interval="15m",token="-",exch_seg="BSE",expiry="-")
   if (now_time.minute%5==0 and "OPT:5M" in time_frame_interval): trade_near_options(5)
 def loop_code():
   if algo_state:
