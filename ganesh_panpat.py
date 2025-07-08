@@ -77,8 +77,8 @@ with setting_tb:
   with ind_col1:
     index_list=st.multiselect('Select Index',['NIFTY','BANKNIFTY','SENSEX','FINNIFTY'],['NIFTY', 'SENSEX', 'BANKNIFTY'])
     fut_list=st.multiselect('Select Future',['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'],['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'])
-    time_frame_interval = st.multiselect('Select Time Frame',['IDX:5M','IDX:15M','IDX:1M','OPT:5M','OPT:1M','GTT:5M','STK:5M'],['IDX:5M','OPT:5M','STK:5M'])
-    five_buy_indicator = st.multiselect('5M Indicator',indicator_list,['ST_7_3 Trade'])
+    time_frame_interval = st.multiselect('Select Time Frame',['IDX:5M','IDX:15M','IDX:1M','OPT:5M','OPT:1M','GTT:5M','STK:5M'],['OPT:5M'])
+    five_buy_indicator = st.multiselect('5M Indicator',indicator_list,[])
     five_opt_buy_indicator = st.multiselect('5M OPT Indicator',indicator_list,['ST_10_1 BB Trade'])
     five_stk_buy_indicator = st.multiselect('5M STK Indicator',indicator_list,[])
     gtt_indicator=st.multiselect('GTT Indicator',['5M_ST','5M_ST_10_2','1M_10_1','1M_10_2'],['5M_ST','5M_ST_10_2'])
@@ -620,7 +620,7 @@ def get_near_options():
 def trade_near_options(time_frame):
   time_frame=str(time_frame)+"m"
   near_option_list=get_near_options()
-  for symbol in ['NIFTY','SENSEX','BANKNIFTY']:
+  for symbol in ['NIFTY','SENSEX']:
     for i in range(0,len(near_option_list)):
       if near_option_list['name'].iloc[i]== symbol:
         try:
@@ -678,20 +678,20 @@ def index_trade(idx_symbol,interval="5m",token="-",exch_seg="NSE",expiry="-"):
 def sub_loop_code(now_time):
   if now_time.minute%5==0 : st.session_state['options_trade_list']=[]
   if (now_time.minute%5==0 and "IDX:5M" in time_frame_interval):
-    if 'BANKNIFTY' in index_list: index_trade(idx_symbol="BANKNIFTY",interval="5m",token="-",exch_seg="NSE",expiry="-")
     if 'NIFTY' in index_list:index_trade(idx_symbol="NIFTY",interval="5m",token="-",exch_seg="NSE",expiry="-")
     if 'SENSEX' in index_list:index_trade(idx_symbol="SENSEX",interval="5m",token="-",exch_seg="BSE",expiry="-")
+    if 'BANKNIFTY' in index_list: index_trade(idx_symbol="BANKNIFTY",interval="5m",token="-",exch_seg="NSE",expiry="-")
   if (now_time.minute%15==0 and "IDX:15M" in time_frame_interval):
-    if 'BANKNIFTY' in index_list: index_trade(idx_symbol="BANKNIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
     if 'NIFTY' in index_list:index_trade(idx_symbol="NIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
     if 'SENSEX' in index_list:index_trade(idx_symbol="SENSEX",interval="15m",token="-",exch_seg="BSE",expiry="-")
+    if 'BANKNIFTY' in index_list: index_trade(idx_symbol="BANKNIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
   if (now_time.minute%5==0 and "OPT:5M" in time_frame_interval): trade_near_options(5)
 def loop_code():
   if algo_state:
-      now = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
-      marketclose = now.replace(hour=14, minute=55, second=0, microsecond=0)
-      marketopen = now.replace(hour=0, minute=5, second=0, microsecond=0)
-      while now < marketclose and  now  > marketopen:
+      now_time = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
+      marketclose = now_time.replace(hour=14, minute=55, second=0, microsecond=0)
+      marketopen = now_time.replace(hour=0, minute=5, second=0, microsecond=0)
+      while now_time < marketclose and  now_time  > marketopen:
         try:
           now_time=datetime.datetime.now(tz=gettz('Asia/Kolkata'))
           sub_loop_code(now_time)
