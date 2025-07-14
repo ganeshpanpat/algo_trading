@@ -175,13 +175,21 @@ else:
   st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
   login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
 
-
+def get_ltp_to_orderbook(orderbook):
+  orderbook['LTP']="-"
+  for i in range(0,len(orderbook)):
+    try:
+      orderbook.loc[i, 'LTP']=get_ltp_price(symbol=orderbook.iloc[i]['tradingsymbol'],token=orderbook.iloc[i]['symboltoken'],exch_seg=orderbook.iloc[i]['exchange'])
+    except:
+      pass
+  return orderbook
 def get_order_book():
   try:
     orderbook=obj.orderBook()
     if orderbook['status']==True and orderbook['data'] is not None:
       orderbook=orderbook['data']
       orderbook=pd.DataFrame(orderbook)
+      orderbook=get_ltp_to_orderbook(orderbook)
       g_orderbook=orderbook[['updatetime','orderid','transactiontype','status','tradingsymbol','price','averageprice','quantity','ordertag']]
       g_orderbook['updatetime'] = pd.to_datetime(g_orderbook['updatetime']).dt.time
       g_orderbook = g_orderbook.sort_values(by=['updatetime'], ascending=[False])
@@ -690,11 +698,13 @@ def loop_code():
   if algo_state:
       now_time = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
       marketclose = now_time.replace(hour=14, minute=55, second=0, microsecond=0)
-      marketopen = now_time.replace(hour=0, minute=5, second=0, microsecond=0)
-      while now_time < marketclose and  now_time  > marketopen:
+      marketopen = now_time.replace(hour=9, minute=20, second=0, microsecond=0)
+      dayend = now_time.replace(hour=15, minute=31, second=0, microsecond=0)
+      while now_time < dayend:
         try:
           now_time=datetime.datetime.now(tz=gettz('Asia/Kolkata'))
-          sub_loop_code(now_time)
+          if now_time < marketclose and  now_time  > marketopen:
+            sub_loop_code(now_time)
           get_order_book()
           get_open_position()
           print_ltp()
