@@ -190,7 +190,7 @@ def get_order_book():
       orderbook=orderbook['data']
       orderbook=pd.DataFrame(orderbook)
       orderbook=get_ltp_to_orderbook(orderbook)
-      g_orderbook=orderbook[['updatetime','orderid','transactiontype','status','tradingsymbol','price','averageprice','quantity','ordertag']]
+      g_orderbook=orderbook[['updatetime','orderid','transactiontype','status','tradingsymbol','price','averageprice','quantity','ordertag','LTP']]
       g_orderbook['updatetime'] = pd.to_datetime(g_orderbook['updatetime']).dt.time
       g_orderbook = g_orderbook.sort_values(by=['updatetime'], ascending=[False])
       order_datatable.dataframe(g_orderbook,hide_index=True)
