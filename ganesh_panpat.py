@@ -710,6 +710,7 @@ def loop_code():
       while now_time < dayend:
         try:
           now_time=datetime.datetime.now(tz=gettz('Asia/Kolkata'))
+          login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Loop Start:{datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()}")
           if now_time < marketclose and  now_time  > marketopen:
             sub_loop_code(now_time)
           get_order_book()
