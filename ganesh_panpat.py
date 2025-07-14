@@ -602,11 +602,18 @@ def get_near_options():
   token_df=st.session_state['opt_list']
   for symbol in symbol_list:
     try:
-        indexLtp=get_ltp_price(symbol)
+        gap=0
+        if symbol=="BANKNIFTY": 
+          expiry_day=st.session_state['bnf_expiry_day']
+          gap=99
+        elif symbol=="NIFTY":
+          expiry_day=st.session_state['nf_expiry_day']
+          gap=49
+        elif symbol=="SENSEX":
+          expiry_day=st.session_state['bse_expiry_day']
+          gap=99
+        indexLtp=get_ltp_price(symbol)-gap
         ltp=indexLtp*100
-        if symbol=="BANKNIFTY": expiry_day=st.session_state['bnf_expiry_day']
-        elif symbol=="NIFTY": expiry_day=st.session_state['nf_expiry_day']
-        elif symbol=="SENSEX": expiry_day=st.session_state['bse_expiry_day']
         a = (token_df[(token_df['name'] == symbol) & (token_df['expiry']==expiry_day) & (token_df['strike']>=ltp) &
                         (token_df['symbol'].str.endswith('CE'))].sort_values(by=['strike']).head(2)).sort_values(by=['strike'], ascending=True)
         a.reset_index(inplace=True)
