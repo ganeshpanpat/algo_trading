@@ -634,7 +634,8 @@ def get_near_options():
 
 def trade_near_options(time_frame):
   time_frame=str(time_frame)+"m"
-  near_option_list=get_near_options()
+  #near_option_list=get_near_options()
+  near_option_list=st.session_state['near_opt_df']
   for symbol in ['NIFTY','SENSEX']:
     for i in range(0,len(near_option_list)):
       if near_option_list['name'].iloc[i]== symbol:
@@ -716,6 +717,8 @@ def loop_code():
           get_order_book()
           get_open_position()
           print_ltp()
+          near_option_list=get_near_options()
+          near_opt_df.dataframe(st.session_state['near_opt_df'],hide_index=True)
         except: pass
         st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
         login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
