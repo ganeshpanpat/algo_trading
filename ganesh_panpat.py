@@ -22,7 +22,7 @@ st.markdown("""
     .block-container {padding-top: 3rem;padding-bottom: 0rem;padding-left: 2rem;padding-right: 2rem;}
   </style>
   """, unsafe_allow_html=True)
-st.text("Welcome To Algo Trading")
+
 if 'Logged_in' not in st.session_state:st.session_state['Logged_in']="Guest"
 if 'login_time' not in st.session_state:st.session_state['login_time']="login_time"
 if 'last_check' not in st.session_state:st.session_state['last_check']="last_check"
@@ -32,11 +32,6 @@ if 'orderbook' not in st.session_state:st.session_state['orderbook']=[]
 if 'opt_list' not in st.session_state:st.session_state['opt_list']=[]
 if 'stk_opt_list' not in st.session_state:st.session_state['stk_opt_list']=[]
 if 'near_opt_df' not in st.session_state:st.session_state['near_opt_df']=[]
-
-login_details=st.empty()
-login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
-index_ltp_string=st.empty()
-index_ltp_string.text(f"Index Ltp: ")
 
 log_tb, order_tb, position_tb, open_odr_tb, setting_tb, token_tb, stk_token_tb, near_opt_tb= st.tabs(["Log","Order Book", "Position",
                 "Open Order", "Settings","Token List","Stock List",'Near Options'])
@@ -51,6 +46,11 @@ with log_tb:
     restart=st.button("Restart")
     algo_state=st.checkbox("Run Algo")
   with col2:
+    st.text("Welcome To Algo Trading")
+    login_details=st.empty()
+    login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
+    index_ltp_string=st.empty()
+    index_ltp_string.text(f"Index Ltp: ")
     trade_info=st.empty()
     log_holder=st.empty()
 
