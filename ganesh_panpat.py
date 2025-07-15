@@ -615,12 +615,12 @@ def get_near_options():
         indexLtp=get_ltp_price(symbol)-gap
         ltp=indexLtp*100
         a = (token_df[(token_df['name'] == symbol) & (token_df['expiry']==expiry_day) & (token_df['strike']>=ltp) &
-                        (token_df['symbol'].str.endswith('CE'))].sort_values(by=['strike']).head(2)).sort_values(by=['strike'], ascending=True)
+                        (token_df['symbol'].str.endswith('CE'))].sort_values(by=['strike']).head(3)).sort_values(by=['strike'], ascending=True)
         a.reset_index(inplace=True)
         a['Serial'] = a['index'] + 1
         a.drop(columns=['index'], inplace=True)
         b=(token_df[(token_df['name'] == symbol) & (token_df['expiry']==expiry_day) & (token_df['strike']<=ltp) &
-                        (token_df['symbol'].str.endswith('PE'))].sort_values(by=['strike']).tail(2)).sort_values(by=['strike'], ascending=False)
+                        (token_df['symbol'].str.endswith('PE'))].sort_values(by=['strike']).tail(3)).sort_values(by=['strike'], ascending=False)
         b.reset_index(inplace=True)
         b['Serial'] = b['index'] + 1
         b.drop(columns=['index'], inplace=True)
@@ -708,6 +708,8 @@ def loop_code():
       marketclose = now_time.replace(hour=14, minute=55, second=0, microsecond=0)
       marketopen = now_time.replace(hour=9, minute=20, second=0, microsecond=0)
       dayend = now_time.replace(hour=15, minute=31, second=0, microsecond=0)
+      near_option_list=get_near_options()
+      near_opt_df.dataframe(st.session_state['near_opt_df'],hide_index=True)
       while now_time < dayend:
         try:
           now_time=datetime.datetime.now(tz=gettz('Asia/Kolkata'))
