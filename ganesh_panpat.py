@@ -117,6 +117,7 @@ with near_opt_tb:
   near_opt_df=st.dataframe(st.session_state['near_opt_df'],hide_index=True)
 
 with todays_trade_tb:
+  recheck=st.checkbox("Recheck")
   todays_trade_updated=st.empty()
   todays_trade_updated.text(f"Todays Trade Updated : ")
   todays_trade_df=st.empty()
@@ -775,8 +776,8 @@ def get_todays_trade(orderbook):
   buy_df['Profit %']=buy_df['Profit %'].astype(float).round(2)
   todays_trade_df.dataframe(buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']],hide_index=True)
   todays_trade_updated.text(f"Todays Trade Updated: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
-  #st.session_state['todays_trade']=buy_df
-  #st.session_state['todays_trade_pnl']=int(sum(buy_df['Profit']))
+  st.session_state['todays_trade']=buy_df
+  st.session_state['todays_trade_pnl']=int(sum(buy_df['Profit']))
   
 def check_target_sl():
   buy_df=st.session_state['todays_trade']
@@ -793,7 +794,7 @@ def check_target_sl():
         if trade=="Sell":exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
       except:pass
   todays_trade_df.dataframe(buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']],hide_index=True)
-  todays_trade_updated.text(f"Todays Trade Updated: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
+  todays_trade_updated.text(f"Todays Trade Updated*: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
 
           
   
@@ -867,6 +868,8 @@ orderbook,pending_orders=get_order_book()
 get_open_position()
 get_todays_trade(orderbook)
 print_ltp()
+if recheck:
+  check_target_sl()
 if __name__ == "__main__":
   try:
     loop_code()
