@@ -344,6 +344,22 @@ def buy_option(option_token,option_symbol,exch_seg,lotsize,ltp_price,indicator_s
   except Exception as e:
     logger.info(f"Error in buy_option: {e}")
     telegram_bot_sendtext(f"Error in buy_option: {e}")
+
+def exit_position(symboltoken,tradingsymbol,qty,ltp_price,sl,ordertag='',producttype='CARRYFORWARD'):
+  position,open_position=get_open_position()
+  try:
+    if isinstance(open_position,str)==True or len(open_position)==0:
+      orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='SELL',ordertype='LIMIT',price=str(ltp_price),
+                          variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=ordertag)
+    else:
+      symbol_position=open_position[(open_position.tradingsymbol==tradingsymbol) & (open_position.netqty!='0')]
+      if len(symbol_position)!=0:
+        cancel_all_order(tradingsymbol)
+        orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='SELL',ordertype='LIMIT',price=str(ltp_price),
+                          variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=ordertag)
+    return orderId
+  except Exception as e:
+    return orderId
 def yfna_data(symbol,interval,period):
   try:
     df=yf.Ticker(symbol).history(interval=interval,period=str(period)+"d")
