@@ -177,9 +177,25 @@ else:
 
 def get_ltp_to_orderbook(orderbook):
   orderbook['LTP']="-"
+  nfo_list = orderbook[orderbook['exchange'] == 'NFO']['symboltoken'].unique().tolist()
+  bfo_list = orderbook[orderbook['exchange'] == 'BFO']['symboltoken'].unique().tolist()
+  nse_list = orderbook[orderbook['exchange'] == 'NSE']['symboltoken'].unique().tolist()
+  ltp_data=obj.getMarketData("LTP",{"NFO":nfo_list,"BFO":bfo_list,"NSE":['99926009','99926000'],"BSE":[99919000]})['data']['fetched']
+  ltp_data=pd.DataFrame(ltp_data)
   for i in range(0,len(orderbook)):
     try:
-      orderbook.loc[i, 'LTP']=get_ltp_price(symbol=orderbook.iloc[i]['tradingsymbol'],token=orderbook.iloc[i]['symboltoken'],exch_seg=orderbook.iloc[i]['exchange'])
+      token_id=orderbook.loc[i, 'symboltoken']
+      for j in range(0,len(ltp_data)):
+        if ltp_data.loc[j]['symbolToken']==token_id:
+          orderbook.loc[i, 'LTP']=ltp_data.loc[j]['ltp']
+          break
+    except:
+      pass
+  
+  for i in range(0,len(orderbook)):
+    try:
+      if orderbook.loc[i, 'LTP']=="-":
+        orderbook.loc[i, 'LTP']=get_ltp_price(symbol=orderbook.iloc[i]['tradingsymbol'],token=orderbook.iloc[i]['symboltoken'],exch_seg=orderbook.iloc[i]['exchange'])
     except:
       pass
   return orderbook
