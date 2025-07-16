@@ -757,7 +757,7 @@ def get_todays_trade(orderbook):
       buy_df['Profit %'].iloc[i]=((buy_df['Sell'].iloc[i]/buy_df['price'].iloc[i])-1)*100
   buy_df['Profit %']=buy_df['Profit %'].astype(float).round(2)
   st.session_state['todays_trade']=buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']]
-  todays_trade_df.dataframe(st.session_state['todays_trade',hide_index=True)
+  todays_trade_df.dataframe(st.session_state['todays_trade'],hide_index=True)
 def sub_loop_code(now_time):
   if now_time.minute%5==0 : st.session_state['options_trade_list']=[]
   if (now_time.minute%5==0 and "IDX:5M" in time_frame_interval):
