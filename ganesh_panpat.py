@@ -791,7 +791,7 @@ def check_target_sl():
         df=get_historical_data(symbol=tradingsymbol,interval="5m",token=symboltoken,exch_seg=exchange)
         trade=str(df['Trade'].values[-1])
         buy_df['ordertag'].iloc[i]=df['Supertrend_10_1'].values[-1]
-        if trade=="Sell":exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
+        #if trade=="Sell":exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
       except:pass
   todays_trade_df.dataframe(buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']],hide_index=True)
   todays_trade_updated.text(f"Todays Trade Updated*: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
