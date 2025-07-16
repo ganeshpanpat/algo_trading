@@ -33,6 +33,7 @@ if 'opt_list' not in st.session_state:st.session_state['opt_list']=[]
 if 'stk_opt_list' not in st.session_state:st.session_state['stk_opt_list']=[]
 if 'near_opt_df' not in st.session_state:st.session_state['near_opt_df']=[]
 if 'todays_trade' not in st.session_state:st.session_state['todays_trade']=[]
+if 'todays_trade_pnl' not in st.session_state:st.session_state['todays_trade_pnl']="-"
 
 log_tb, order_tb, position_tb, open_odr_tb, setting_tb, token_tb, stk_token_tb, near_opt_tb,todays_trade_tb= st.tabs(["Log","Order Book", "Position",
                 "Open Order", "Settings","Token List","Stock List",'Near Options','Todays Trade'])
@@ -605,7 +606,7 @@ def print_ltp():
       print_sting=f"{print_sting} {data.iloc[i]['tradingSymbol']} {int(data.iloc[i]['ltp'])}({int(data.iloc[i]['change'])})"
     print_sting=print_sting.replace("Nifty 50","Nifty")
     print_sting=print_sting.replace("Nifty Bank","BankNifty")
-    index_ltp_string.text(f"Index Ltp: {print_sting}")
+    index_ltp_string.text(f"Index Ltp: {print_sting} Todays Pnl : {st.session_state['todays_trade_pnl']}")
     return print_sting
   except Exception as e:
     logger.info(f"error in print_ltp: {e}")
@@ -759,6 +760,7 @@ def get_todays_trade(orderbook):
   st.session_state['todays_trade']=buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']]
   todays_trade_df.dataframe(st.session_state['todays_trade'],hide_index=True)
   todays_trade_updated.text(f"Todays Trade Updated: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
+  st.session_state['todays_trade_pnl']=int(sum(buy_df['Profit']))
 def sub_loop_code(now_time):
   if now_time.minute%5==0 : st.session_state['options_trade_list']=[]
   if (now_time.minute%5==0 and "IDX:5M" in time_frame_interval):
@@ -826,8 +828,8 @@ if bnf_pe:
 st.session_state['options_trade_list']=[]
 orderbook,pending_orders=get_order_book()
 get_open_position()
-print_ltp()
 get_todays_trade(orderbook)
+print_ltp()
 if __name__ == "__main__":
   try:
     loop_code()
