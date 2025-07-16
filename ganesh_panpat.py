@@ -775,8 +775,8 @@ def get_todays_trade(orderbook):
   buy_df['Profit %']=buy_df['Profit %'].astype(float).round(2)
   todays_trade_df.dataframe(buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']],hide_index=True)
   todays_trade_updated.text(f"Todays Trade Updated: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
-  st.session_state['todays_trade']=buy_df
-  st.session_state['todays_trade_pnl']=int(sum(buy_df['Profit']))
+  #st.session_state['todays_trade']=buy_df
+  #st.session_state['todays_trade_pnl']=int(sum(buy_df['Profit']))
   
 def check_target_sl():
   buy_df=st.session_state['todays_trade']
@@ -809,7 +809,6 @@ def sub_loop_code(now_time):
     if 'BANKNIFTY' in index_list: index_trade(idx_symbol="BANKNIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
   if (now_time.minute%5==0 and "OPT:5M" in time_frame_interval):
     trade_near_options(5)
-    check_target_sl()
 def loop_code():
   if algo_state:
       now_time = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
