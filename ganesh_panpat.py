@@ -773,7 +773,7 @@ def get_todays_trade(orderbook):
       buy_df['Profit'].iloc[i]=float((buy_df['Sell'].iloc[i]-buy_df['price'].iloc[i]))*float(buy_df['quantity'].iloc[i])
       buy_df['Profit %'].iloc[i]=((buy_df['Sell'].iloc[i]/buy_df['price'].iloc[i])-1)*100
   buy_df['Profit %']=buy_df['Profit %'].astype(float).round(2)
-  check_target_sl(buy_df)
+  buy_df=check_target_sl(buy_df)
   st.session_state['todays_trade']=buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']]
   todays_trade_df.dataframe(st.session_state['todays_trade'],hide_index=True)
   todays_trade_updated.text(f"Todays Trade Updated: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
@@ -788,9 +788,11 @@ def check_target_sl(buy_df):
         exchange=buy_df['exchange'].iloc[i]
         qty=buy_df['quantity'].iloc[i]
         df=get_historical_data(symbol=tradingsymbol,interval="5m,token=symboltoken,exch_seg=exchange)
-        trade=str(df['Trade'].values[-1])
+        trade=str(buy_df['Trade'].values[-1])
+        buy_df.loc[i, 'ordertag'] = buy_df.loc[i, 'Supertrend_10_1']
         if trade=="Sell":exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
       except:pass
+  return buy_df
           
   
 def sub_loop_code(now_time):
