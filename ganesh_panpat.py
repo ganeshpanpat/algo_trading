@@ -758,6 +758,7 @@ def get_todays_trade(orderbook):
   buy_df['Profit %']=buy_df['Profit %'].astype(float).round(2)
   st.session_state['todays_trade']=buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']]
   todays_trade_df.dataframe(st.session_state['todays_trade'],hide_index=True)
+  todays_trade_updated.text(f"Todays Trade Updated: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
 def sub_loop_code(now_time):
   if now_time.minute%5==0 : st.session_state['options_trade_list']=[]
   if (now_time.minute%5==0 and "IDX:5M" in time_frame_interval):
@@ -783,8 +784,9 @@ def loop_code():
           login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Loop Start:{datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()}")
           if now_time < marketclose and  now_time  > marketopen:
             sub_loop_code(now_time)
-          get_order_book()
+          orderbook,pending_orders=get_order_book()
           get_open_position()
+          get_todays_trade(orderbook)
           print_ltp()
           near_option_list=get_near_options()
           near_opt_df.dataframe(st.session_state['near_opt_df'],hide_index=True)
