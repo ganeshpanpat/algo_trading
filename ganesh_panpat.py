@@ -346,20 +346,23 @@ def buy_option(option_token,option_symbol,exch_seg,lotsize,ltp_price,indicator_s
     telegram_bot_sendtext(f"Error in buy_option: {e}")
 
 def exit_position(option_token,option_symbol,exch_seg,qty,ltp_price,ordertag=''):
-  position,open_position=get_open_position()
-  try:
-    if isinstance(open_position,str)==True or len(open_position)==0:
-      orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='SELL',ordertype='LIMIT',price=str(ltp_price),
+  orderId=place_order(token=option_token,symbol=option_symbol,qty=qty,buy_sell='SELL',ordertype='LIMIT',price=str(ltp_price),
                           variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=ordertag)
-    else:
-      symbol_position=open_position[(open_position.tradingsymbol==tradingsymbol) & (open_position.netqty!='0')]
-      if len(symbol_position)!=0:
-        cancel_all_order(tradingsymbol)
-        orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='SELL',ordertype='LIMIT',price=str(ltp_price),
-                          variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=ordertag)
-    return orderId
-  except Exception as e:
-    return orderId
+  return orderId
+  #position,open_position=get_open_position()
+  #try:
+  #  if isinstance(open_position,str)==True or len(open_position)==0:
+  #    orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='SELL',ordertype='LIMIT',price=str(ltp_price),
+  #                        variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=ordertag)
+  #  else:
+  #    symbol_position=open_position[(open_position.tradingsymbol==tradingsymbol) & (open_position.netqty!='0')]
+  #    if len(symbol_position)!=0:
+  #      cancel_all_order(tradingsymbol)
+  #      orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='SELL',ordertype='LIMIT',price=str(ltp_price),
+  #                        variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=ordertag)
+  #  return orderId
+  #except Exception as e:
+  #  return orderId
 def yfna_data(symbol,interval,period):
   try:
     df=yf.Ticker(symbol).history(interval=interval,period=str(period)+"d")
@@ -790,7 +793,7 @@ def check_target_sl():
         df=get_historical_data(symbol=tradingsymbol,interval="5m",token=symboltoken,exch_seg=exchange)
         trade=str(df['Trade'].values[-1])
         buy_df['ordertag'].iloc[i]=df['Supertrend_10_1'].values[-1]
-        #if trade=="Sell":exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
+        if trade=="Sell": exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
       except:pass
   todays_trade_df.dataframe(buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']],hide_index=True)
   todays_trade_updated.text(f"Todays Trade Updated*: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
