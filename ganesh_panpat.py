@@ -773,13 +773,14 @@ def get_todays_trade(orderbook):
       buy_df['Profit'].iloc[i]=float((buy_df['Sell'].iloc[i]-buy_df['price'].iloc[i]))*float(buy_df['quantity'].iloc[i])
       buy_df['Profit %'].iloc[i]=((buy_df['Sell'].iloc[i]/buy_df['price'].iloc[i])-1)*100
   buy_df['Profit %']=buy_df['Profit %'].astype(float).round(2)
-  buy_df=check_target_sl(buy_df)
-  st.session_state['todays_trade']=buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']]
-  todays_trade_df.dataframe(st.session_state['todays_trade'],hide_index=True)
-  todays_trade_updated.text(f"Todays Trade Updated: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
+  st.session_state['todays_trade']=buy_df
   st.session_state['todays_trade_pnl']=int(sum(buy_df['Profit']))
+  buy_df=buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']]
+  todays_trade_df.dataframe(buy_df,hide_index=True)
+  todays_trade_updated.text(f"Todays Trade Updated: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
 
-def check_target_sl(buy_df):
+def check_target_sl():
+  buy_df=st.session_state['todays_trade']=buy_df
   for i in range(0,len(buy_df)):
     if buy_df['Status'].iloc[i]=='Pending':
       try:
@@ -792,7 +793,7 @@ def check_target_sl(buy_df):
         buy_df['ordertag'].iloc[i]=df['Supertrend_10_1'].values[-1]
         if trade=="Sell":exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
       except:pass
-  return buy_df
+  todays_trade_df.dataframe(buy_df,hide_index=True)
           
   
 def sub_loop_code(now_time):
@@ -805,7 +806,9 @@ def sub_loop_code(now_time):
     if 'NIFTY' in index_list:index_trade(idx_symbol="NIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
     if 'SENSEX' in index_list:index_trade(idx_symbol="SENSEX",interval="15m",token="-",exch_seg="BSE",expiry="-")
     if 'BANKNIFTY' in index_list: index_trade(idx_symbol="BANKNIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
-  if (now_time.minute%5==0 and "OPT:5M" in time_frame_interval): trade_near_options(5)
+  if (now_time.minute%5==0 and "OPT:5M" in time_frame_interval):
+    trade_near_options(5)
+    check_target_sl()
 def loop_code():
   if algo_state:
       now_time = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
