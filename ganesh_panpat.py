@@ -35,8 +35,14 @@ if 'near_opt_df' not in st.session_state:st.session_state['near_opt_df']=[]
 if 'todays_trade' not in st.session_state:st.session_state['todays_trade']=[]
 if 'todays_trade_pnl' not in st.session_state:st.session_state['todays_trade_pnl']="-"
 
-log_tb, order_tb, position_tb, open_odr_tb, setting_tb, token_tb, stk_token_tb, near_opt_tb,todays_trade_tb= st.tabs(["Log","Order Book", "Position",
-                "Open Order", "Settings","Token List","Stock List",'Near Options','Todays Trade'])
+st.text("Welcome To Algo Trading")
+login_details=st.empty()
+login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
+index_ltp_string=st.empty()
+index_ltp_string.text(f"Index Ltp: ")
+
+log_tb, order_tb, position_tb, open_odr_tb, setting_tb, token_tb, near_opt_tb,todays_trade_tb= st.tabs(["Log","Order Book", "Position",
+                "Open Order", "Settings","Token List",'Near Options','Todays Trade'])
 with log_tb:
   col1,col2=st.columns([1,9])
   with col1:
@@ -48,11 +54,6 @@ with log_tb:
     restart=st.button("Restart")
     algo_state=st.checkbox("Run Algo")
   with col2:
-    #st.text("Welcome To Algo Trading")
-    login_details=st.empty()
-    login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
-    index_ltp_string=st.empty()
-    index_ltp_string.text(f"Index Ltp: ")
     trade_info=st.empty()
     log_holder=st.empty()
 
@@ -106,9 +107,9 @@ with token_tb:
     token_df=st.empty()
     token_df=st.dataframe(st.session_state['opt_list'],hide_index=True)
 
-with stk_token_tb:
-    stk_token_df=st.empty()
-    stk_token_df=st.dataframe(st.session_state['stk_opt_list'],hide_index=True)
+#with stk_token_tb:
+#    stk_token_df=st.empty()
+#    stk_token_df=st.dataframe(st.session_state['stk_opt_list'],hide_index=True)
 
 with near_opt_tb:
   near_opt_updated=st.empty()
@@ -288,13 +289,10 @@ def modify_order(variety,orderid,ordertype,producttype,price,quantity,tradingsym
                     "symboltoken":symboltoken,"exchange":exchange,
                     "squareoff":squareoff,"stoploss": stoploss,"triggerprice":triggerprice}
     obj.modifyOrder(modifyparams)
-  except Exception as e:
-    logger.info(f"error in modify_order: {e}")
+  except Exception as e:logger.info(f"error in modify_order: {e}")
 def cancel_order(orderID,variety):
-  try:
-    obj.cancelOrder(orderID,variety=variety)
-  except Exception as e:
-    logger.info(f"Error cancel_order: {e}")
+  try: obj.cancelOrder(orderID,variety=variety)
+  except Exception as e: logger.info(f"Error cancel_order: {e}")
 def cancel_all_order(symbol):
   try:
     orderbook,pending_orders=get_order_book()
@@ -344,7 +342,6 @@ def buy_option(option_token,option_symbol,exch_seg,lotsize,ltp_price,indicator_s
   except Exception as e:
     logger.info(f"Error in buy_option: {e}")
     telegram_bot_sendtext(f"Error in buy_option: {e}")
-
 def exit_position(option_token,option_symbol,exch_seg,qty,ltp_price,ordertag=''):
   orderId=place_order(token=option_token,symbol=option_symbol,qty=qty,buy_sell='SELL',ordertype='LIMIT',price=str(ltp_price),
                           variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=ordertag)
@@ -674,7 +671,6 @@ def get_near_options():
   st.session_state['near_opt_df']=df
   near_opt_df.dataframe(st.session_state['near_opt_df'],hide_index=True)
   return df
-
 def trade_near_options(time_frame):
   time_frame=str(time_frame)+"m"
   #near_option_list=get_near_options()
@@ -794,13 +790,14 @@ def check_target_sl():
         df=get_historical_data(symbol=tradingsymbol,interval="5m",token=symboltoken,exch_seg=exchange)
         trade=str(df['Trade'].values[-1])
         buy_df['ordertag'].iloc[i]=str(df['Trade'].values[-1]) + ":"+ str(df['Supertrend_10_1'].values[-1])
-        if trade=="Sell":
+        if trade=="Sell" or int(df['Supertrend_10_1'].values[-1])>int(df['Close'].values[-1]):
           buy_df['ordertag'].iloc[i]="Sell:" + str(df['Supertrend_10_1'].values[-1])
-          exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
+          ltp_price=get_ltp_price(symbol=tradingsymbol,token=symboltoken,exch_seg=exchange)
+          orderId=exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
+          buy_df['Sell Indicator'].iloc[i]=orderId
       except:pass
   todays_trade_df.dataframe(buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']],hide_index=True)
   todays_trade_updated.text(f"Todays Trade Updated*: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
-  
 def sub_loop_code(now_time):
   if now_time.minute%5==0 : st.session_state['options_trade_list']=[]
   if (now_time.minute%5==0 and "IDX:5M" in time_frame_interval):
@@ -813,61 +810,42 @@ def sub_loop_code(now_time):
     if 'BANKNIFTY' in index_list: index_trade(idx_symbol="BANKNIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
   if (now_time.minute%5==0 and "OPT:5M" in time_frame_interval):
     trade_near_options(5)
-    
 def loop_code():
   if algo_state:
       now_time = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
       marketclose = now_time.replace(hour=14, minute=55, second=0, microsecond=0)
       marketopen = now_time.replace(hour=9, minute=20, second=0, microsecond=0)
       dayend = now_time.replace(hour=15, minute=31, second=0, microsecond=0)
-      near_option_list=get_near_options()
+      get_near_options()
       near_opt_df.dataframe(st.session_state['near_opt_df'],hide_index=True)
       while now_time < dayend:
         try:
           now_time=datetime.datetime.now(tz=gettz('Asia/Kolkata'))
           login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Loop Start:{datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()}")
-          if now_time < marketclose and  now_time  > marketopen:
-            sub_loop_code(now_time)
+          if now_time < marketclose and  now_time  > marketopen: sub_loop_code(now_time)
           orderbook,pending_orders=get_order_book()
           get_open_position()
           get_todays_trade(orderbook)
           check_target_sl()
           print_ltp()
-          near_option_list=get_near_options()
+          get_near_options()
           near_opt_df.dataframe(st.session_state['near_opt_df'],hide_index=True)
         except: pass
         st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
         login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
         time.sleep(60-datetime.datetime.now().second)
         now_time=datetime.datetime.now(tz=gettz('Asia/Kolkata'))
-if nf_ce:
-  idx_symbol="NIFTY"
+def manual_buy(idx_symbol,ce_pe,expiry):
   indexLtp=get_ltp_price(idx_symbol)
   expiry=st.session_state['nf_expiry_day']
-  strike_symbol=getTokenInfo(idx_symbol=idx_symbol,strike_price=indexLtp,ce_pe="CE",expiry=expiry)
+  strike_symbol=getTokenInfo(idx_symbol=idx_symbol,strike_price=indexLtp,ce_pe=ce_pe,expiry=expiry)
   buy_option(strike_symbol['token'],strike_symbol['symbol'],strike_symbol['exch_seg'],
                   str(int(strike_symbol['lotsize'])),str(0),indicator_strategy="Manual Buy")
-if bnf_ce:
-  idx_symbol="BANKNIFTY"
-  indexLtp=get_ltp_price(idx_symbol)
-  expiry=st.session_state['bnf_expiry_day']
-  strike_symbol=getTokenInfo(idx_symbol=idx_symbol,strike_price=indexLtp,ce_pe="CE",expiry=expiry)
-  buy_option(strike_symbol['token'],strike_symbol['symbol'],strike_symbol['exch_seg'],
-                  str(int(strike_symbol['lotsize'])),str(0),indicator_strategy="Manual Buy")
-if nf_pe:
-  idx_symbol="NIFTY"
-  indexLtp=get_ltp_price(idx_symbol)
-  expiry=st.session_state['nf_expiry_day']
-  strike_symbol=getTokenInfo(idx_symbol=idx_symbol,strike_price=indexLtp,ce_pe="PE",expiry=expiry)
-  buy_option(strike_symbol['token'],strike_symbol['symbol'],strike_symbol['exch_seg'],
-                  str(int(strike_symbol['lotsize'])),str(0),indicator_strategy="Manual Buy")
-if bnf_pe:
-  idx_symbol="BANKNIFTY"
-  indexLtp=get_ltp_price(idx_symbol)
-  expiry=st.session_state['bnf_expiry_day']
-  strike_symbol=getTokenInfo(idx_symbol=idx_symbol,strike_price=indexLtp,ce_pe="PE",expiry=expiry)
-  buy_option(strike_symbol['token'],strike_symbol['symbol'],strike_symbol['exch_seg'],
-                  str(int(strike_symbol['lotsize'])),str(0),indicator_strategy="Manual Buy")
+if nf_ce:manual_buy("NIFTY","CE",st.session_state['nf_expiry_day'])
+if bnf_ce:manual_buy("BANKNIFTY","CE",st.session_state['bnf_expiry_day'])
+if nf_pe:manual_buy("NIFTY","PE",st.session_state['nf_expiry_day'])
+if bnf_pe:manual_buy("BANKNIFTY","PE",st.session_state['bnf_expiry_day'])
+
 st.session_state['options_trade_list']=[]
 orderbook,pending_orders=get_order_book()
 get_open_position()
