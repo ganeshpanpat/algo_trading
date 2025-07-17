@@ -793,12 +793,12 @@ def check_target_sl():
         df=get_historical_data(symbol=tradingsymbol,interval="5m",token=symboltoken,exch_seg=exchange)
         trade=str(df['Trade'].values[-1])
         buy_df['ordertag'].iloc[i]=df['Supertrend_10_1'].values[-1]
-        if trade=="Sell": exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
+        if trade=="Sell":
+          buy_df['ordertag'].iloc[i]="Sell:" & str(df['Supertrend_10_1'].values[-1])
+          exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
       except:pass
   todays_trade_df.dataframe(buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']],hide_index=True)
   todays_trade_updated.text(f"Todays Trade Updated*: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
-
-          
   
 def sub_loop_code(now_time):
   if now_time.minute%5==0 : st.session_state['options_trade_list']=[]
@@ -812,7 +812,7 @@ def sub_loop_code(now_time):
     if 'BANKNIFTY' in index_list: index_trade(idx_symbol="BANKNIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
   if (now_time.minute%5==0 and "OPT:5M" in time_frame_interval):
     trade_near_options(5)
-    check_target_sl()
+    
 def loop_code():
   if algo_state:
       now_time = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
@@ -830,6 +830,7 @@ def loop_code():
           orderbook,pending_orders=get_order_book()
           get_open_position()
           get_todays_trade(orderbook)
+          check_target_sl()
           print_ltp()
           near_option_list=get_near_options()
           near_opt_df.dataframe(st.session_state['near_opt_df'],hide_index=True)
