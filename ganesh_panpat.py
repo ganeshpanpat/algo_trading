@@ -787,10 +787,11 @@ def check_target_sl():
         tradingsymbol=buy_df['tradingsymbol'].iloc[i]
         exchange=buy_df['exchange'].iloc[i]
         qty=buy_df['quantity'].iloc[i]
+        profit=float(buy_df['Profit'].iloc[i])
         df=get_historical_data(symbol=tradingsymbol,interval="5m",token=symboltoken,exch_seg=exchange)
         trade=str(df['Trade'].values[-1])
         buy_df['ordertag'].iloc[i]=str(df['Trade'].values[-1]) + ":"+ str(df['Supertrend_10_1'].values[-1])
-        if trade=="Sell" or int(df['Supertrend_10_1'].values[-1])>int(df['Close'].values[-1]):
+        if trade=="Sell" or int(df['Supertrend_10_1'].values[-1])>int(df['Close'].values[-1]) or profit > 1500:
           buy_df['ordertag'].iloc[i]="Sell:" + str(df['Supertrend_10_1'].values[-1])
           ltp_price=get_ltp_price(symbol=tradingsymbol,token=symboltoken,exch_seg=exchange)
           orderId=exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
