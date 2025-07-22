@@ -312,7 +312,8 @@ def buy_option(option_token,option_symbol,exch_seg,lotsize,ltp_price,indicator_s
     if len(indicator_strategy) > 50: indicator_strategy= indicator_strategy[:50]
     else: indicator_strategy= indicator_strategy
     if option_symbol.startswith('NIFTY') or option_symbol.startswith('BANKNIFTY') or option_symbol.startswith('SENSEX'):
-      orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='MARKET',price=str(0),
+      ltp_price=float(get_ltp_price(symbol=option_symbol,token=option_token,exch_seg=exch_seg))
+      orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='LIMIT',price=str(str_price),
                           variety='NORMAL',exch_seg=exch_seg,producttype='CARRYFORWARD',ordertag=indicator_strategy)
     else:
       ltp_price=float(get_ltp_price(symbol=option_symbol,token=option_token,exch_seg=exch_seg))
