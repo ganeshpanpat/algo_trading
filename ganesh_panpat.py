@@ -90,7 +90,7 @@ with setting_tb:
     fifteen_buy_indicator = st.multiselect('15M Indicator',indicator_list,[])
     three_buy_indicator = st.multiselect('3M Indicator',indicator_list,[])
     with ind_col2:
-      lots_to_trade=st.number_input(label="Lots To Trade",min_value=1, max_value=10, value=1, step=None)
+      lots_to_trade=st.number_input(label="Lots To Trade",min_value=1, max_value=10, value=5, step=None)
       target_order_type = st.selectbox('Target Order',('Target', 'Stop_Loss', 'NA'),1)
       target_type = st.selectbox('Target Type',('Points', 'Per Cent','Indicator','ATR'),3)
       if target_type=="ATR":
@@ -319,6 +319,7 @@ def buy_option(option_token,option_symbol,exch_seg,lotsize,ltp_price,indicator_s
   try:
     if len(indicator_strategy) > 50: indicator_strategy= indicator_strategy[:50]
     else: indicator_strategy= indicator_strategy
+    lotsize=str(int(lotsize) * lots_to_trade)
     if option_symbol.startswith('NIFTY') or option_symbol.startswith('BANKNIFTY') or option_symbol.startswith('SENSEX'):
       ltp_price=float(get_ltp_price(symbol=option_symbol,token=option_token,exch_seg=exch_seg))
       orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='BUY',ordertype='LIMIT',price=str(ltp_price),
