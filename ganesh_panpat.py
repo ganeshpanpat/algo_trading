@@ -171,18 +171,22 @@ correlation_id = "abcde"
 data = obj.generateSession(username, pwd, totp)
 if data['status'] == False:logger.error(data)
 else:
-  authToken = data['data']['jwtToken']
-  refreshToken = data['data']['refreshToken']
-  feedToken = obj.getfeedToken()
-  res = obj.getProfile(refreshToken)
-  obj.generateToken(refreshToken)
-  userProfile= obj.getProfile(refreshToken)
-  aa= userProfile.get('data')
-  login_name=aa.get('name').title()
-  st.session_state['Logged_in']=login_name.split()[0]
-  st.session_state['login_time']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
-  st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
-  login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
+  for i in range(0,3):
+    try:
+      authToken = data['data']['jwtToken']
+      refreshToken = data['data']['refreshToken']
+      feedToken = obj.getfeedToken()
+      res = obj.getProfile(refreshToken)
+      obj.generateToken(refreshToken)
+      userProfile= obj.getProfile(refreshToken)
+      aa= userProfile.get('data')
+      login_name=aa.get('name').title()
+      st.session_state['Logged_in']=login_name.split()[0]
+      st.session_state['login_time']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
+      st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
+      login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
+      break
+    except:pass
 
 def get_ltp_to_orderbook(orderbook):
   orderbook['LTP']="-"
