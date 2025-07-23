@@ -852,7 +852,7 @@ def loop_code():
       now_time = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
       marketclose = now_time.replace(hour=14, minute=55, second=0, microsecond=0)
       marketopen = now_time.replace(hour=9, minute=20, second=0, microsecond=0)
-      dayend = now_time.replace(hour=20, minute=30, second=0, microsecond=0)
+      dayend = now_time.replace(hour=15, minute=30, second=0, microsecond=0)
       get_near_options()
       near_opt_df.dataframe(st.session_state['near_opt_df'],hide_index=True)
       while now_time < dayend:
