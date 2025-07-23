@@ -852,7 +852,7 @@ def loop_code():
       now_time = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
       marketclose = now_time.replace(hour=14, minute=55, second=0, microsecond=0)
       marketopen = now_time.replace(hour=9, minute=20, second=0, microsecond=0)
-      dayend = now_time.replace(hour=15, minute=30, second=0, microsecond=0)
+      dayend = now_time.replace(hour=20, minute=30, second=0, microsecond=0)
       get_near_options()
       near_opt_df.dataframe(st.session_state['near_opt_df'],hide_index=True)
       while now_time < dayend:
@@ -871,6 +871,12 @@ def loop_code():
         except: pass
         st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
         login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
+        for i in range(0,5):
+          if datetime.datetime.now().second< 40 :
+            check_target_sl_new()
+            time.sleep(5)
+          else:
+            break
         time.sleep(60-datetime.datetime.now().second)
         now_time=datetime.datetime.now(tz=gettz('Asia/Kolkata'))
 def manual_buy(idx_symbol,ce_pe,expiry):
@@ -889,7 +895,6 @@ orderbook,pending_orders=get_order_book()
 get_open_position()
 get_todays_trade(orderbook)
 print_ltp()
-check_target_sl()
 if __name__ == "__main__":
   try:
     loop_code()
