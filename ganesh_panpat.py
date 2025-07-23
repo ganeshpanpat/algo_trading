@@ -123,7 +123,7 @@ with todays_trade_tb:
   todays_trade_df=st.empty()
   #todays_trade_df=st.dataframe(st.session_state['todays_trade'],hide_index=True)
   if len(st.session_state['todays_trade'])>0:
-  todays_trade_df.dataframe(st.session_state['todays_trade'][['updatetime','tradingsymbol','price','Stop Loss','Target',
+    todays_trade_df.dataframe(st.session_state['todays_trade'][['updatetime','tradingsymbol','price','Stop Loss','Target',
                                                               'LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']],hide_index=True)
     
   
