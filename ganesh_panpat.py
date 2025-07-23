@@ -889,6 +889,7 @@ orderbook,pending_orders=get_order_book()
 get_open_position()
 get_todays_trade(orderbook)
 print_ltp()
+check_target_sl()
 if __name__ == "__main__":
   try:
     loop_code()
