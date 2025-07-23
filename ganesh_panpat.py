@@ -818,19 +818,20 @@ def check_target_sl_new():
         tradingsymbol=buy_df['tradingsymbol'].iloc[i]
         exchange=buy_df['exchange'].iloc[i]
         qty=buy_df['quantity'].iloc[i]
+        ltp_price=get_ltp_price(symbol=tradingsymbol,token=symboltoken,exch_seg=exchange)
         buy_df['LTP'].iloc[i]=get_ltp_price(symbol=tradingsymbol,token=symboltoken,exch_seg=exchange)
         buy_df['Profit'].iloc[i]=float((buy_df['LTP'].iloc[i]-buy_df['price'].iloc[i]))*float(buy_df['quantity'].iloc[i])
         buy_df['Profit %'].iloc[i]=((buy_df['LTP'].iloc[i]/buy_df['price'].iloc[i])-1)*100
         profit=float(buy_df['Profit'].iloc[i])
         if profit > 1000:
-          buy_df['ordertag'].iloc[i]="Sell:" + str(df['Supertrend_10_1'].values[-1])
+          buy_df['ordertag'].iloc[i]="Target Hit:" + str(ltp_price)
           ltp_price=get_ltp_price(symbol=tradingsymbol,token=symboltoken,exch_seg=exchange)
           orderId=exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
           buy_df['Sell Indicator'].iloc[i]=orderId
           buy_df['Status'].iloc[i]="Closed"
       except:pass
   todays_trade_df.dataframe(buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']],hide_index=True)
-  todays_trade_updated.text(f"Todays Trade Updated*: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
+  todays_trade_updated.text(f"Todays Trade Updated**: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
 
 def sub_loop_code(now_time):
   if now_time.minute%5==0 : st.session_state['options_trade_list']=[]
