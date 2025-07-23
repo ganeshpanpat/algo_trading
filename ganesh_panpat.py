@@ -809,6 +809,8 @@ def check_target_sl():
       except:pass
   todays_trade_df.dataframe(buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']],hide_index=True)
   todays_trade_updated.text(f"Todays Trade Updated*: {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}, PNL: {int(sum(buy_df['Profit']))}")
+  time.sleep(5)
+  check_target_sl_new()
 def check_target_sl_new():
   buy_df=st.session_state['todays_trade']
   for i in range(0,len(buy_df)):
