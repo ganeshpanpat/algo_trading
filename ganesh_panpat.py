@@ -870,12 +870,7 @@ def loop_code():
         except: pass
         st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
         login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
-        for i in range(0,5):
-          if datetime.datetime.now().second< 40 :
-            check_target_sl_new()
-            time.sleep(5)
-          else:
-            break
+        check_target_sl_new()
         time.sleep(60-datetime.datetime.now().second)
         now_time=datetime.datetime.now(tz=gettz('Asia/Kolkata'))
 def manual_buy(idx_symbol,ce_pe,expiry):
