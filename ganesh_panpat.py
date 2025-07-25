@@ -788,6 +788,7 @@ def get_todays_trade(orderbook):
     st.session_state['todays_trade']=buy_df
     st.session_state['todays_trade_pnl']=int(sum(buy_df['Profit']))
   except: pass
+  check_target_sl()
 def check_target_sl():
   buy_df=st.session_state['todays_trade']
   for i in range(0,len(buy_df)):
