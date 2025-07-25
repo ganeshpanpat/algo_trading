@@ -788,7 +788,7 @@ def get_todays_trade(orderbook):
     st.session_state['todays_trade']=buy_df
     st.session_state['todays_trade_pnl']=int(sum(buy_df['Profit']))
   except: pass
-
+  check_target_sl()
 def check_target_sl():
   buy_df=st.session_state['todays_trade']
   for i in range(0,len(buy_df)):
@@ -807,7 +807,7 @@ def check_target_sl():
           buy_df['ordertag'].iloc[i]="Sell:" + str(df['Supertrend_10_1'].values[-1])
           ltp_price=get_ltp_price(symbol=tradingsymbol,token=symboltoken,exch_seg=exchange)
           #orderId=exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
-          buy_df['Sell Indicator'].iloc[i]=orderId
+          #buy_df['Sell Indicator'].iloc[i]=orderId
           buy_df['Status'].iloc[i]="Closed"
       except:pass
   todays_trade_df.dataframe(buy_df[['updatetime','tradingsymbol','price','Stop Loss','Target','LTP','Status','Sell','Exit Time','Profit','Profit %','ordertag','Sell Indicator']],hide_index=True)
