@@ -802,7 +802,7 @@ def check_target_sl():
         df=get_historical_data(symbol=tradingsymbol,interval="5m",token=symboltoken,exch_seg=exchange)
         trade=str(df['Trade'].values[-1])
         buy_df['Stop Loss'].iloc[i]=int(df['Supertrend_10_1'].values[-1])
-        buy_df['Target'].iloc[i]=abs(float(df['price'].values[-1])-float(df['Supertrend_10_1'].values[-1]))
+        buy_df['Target'].iloc[i]=int(float(buy_df['price'].iloc[i])+(2*abs(float(buy_df['price'].iloc[i])-float(df['Supertrend_10_1'].values[-1]))))
         if trade=="Sell" or int(df['Supertrend_10_1'].values[-1])>int(df['Close'].values[-1]) or profit > 1000:
           buy_df['ordertag'].iloc[i]="Sell:" + str(df['Supertrend_10_1'].values[-1])
           ltp_price=get_ltp_price(symbol=tradingsymbol,token=symboltoken,exch_seg=exchange)
