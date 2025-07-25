@@ -788,11 +788,10 @@ def get_todays_trade(orderbook):
     st.session_state['todays_trade']=buy_df
     st.session_state['todays_trade_pnl']=int(sum(buy_df['Profit']))
   except: pass
-  check_target_sl()
 def check_target_sl():
   buy_df=st.session_state['todays_trade']
   for i in range(0,len(buy_df)):
-    if buy_df['Status'].iloc[i]=='Pending' or buy_df['Status'].iloc[i]=='Closed':
+    if buy_df['Status'].iloc[i]=='Pending':
       try:
         symboltoken=buy_df['symboltoken'].iloc[i]
         tradingsymbol=buy_df['tradingsymbol'].iloc[i]
@@ -803,7 +802,7 @@ def check_target_sl():
         trade=str(df['Trade'].values[-1])
         buy_df['Stop Loss'].iloc[i]=int(df['Supertrend_10_1'].values[-1])
         buy_df['Target'].iloc[i]=int(float(buy_df['price'].iloc[i])+(2*abs(float(buy_df['price'].iloc[i])-float(df['Supertrend_10_1'].values[-1]))))
-        if trade=="Sell" or int(df['Supertrend_10_1'].values[-1])>int(df['Close'].values[-1]) or profit > 1000:
+        if trade=="Sell" or int(df['Supertrend_10_1'].values[-1])>int(df['Close'].values[-1]) or int(buy_df['Target'].iloc[i])<int(df['Close'].values[-1]) :
           buy_df['ordertag'].iloc[i]="Sell:" + str(df['Supertrend_10_1'].values[-1])
           ltp_price=get_ltp_price(symbol=tradingsymbol,token=symboltoken,exch_seg=exchange)
           #orderId=exit_position(symboltoken,tradingsymbol,exchange,qty,ltp_price,ordertag='')
