@@ -895,4 +895,4 @@ if __name__ == "__main__":
     loop_code()
   except Exception as e:
     st.error(f"An error occurred: {e}")
-    st.experimental_rerun()
+    st.rerun()
