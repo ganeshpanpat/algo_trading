@@ -1,6 +1,6 @@
 altair
 numpy
-pandas
+pandas==2.2.2
 pydeck
 streamlit
 yfinance==0.2.9
