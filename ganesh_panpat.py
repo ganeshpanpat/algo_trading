@@ -545,4 +545,49 @@ def print_ltp():
   except Exception as e:
     logger.info(f"error in print_ltp: {e}")
     return None
-print_ltp()
+def getTokenInfo(idx_symbol,strike_price=0,ce_pe="CE",expiry="-"):
+  token_df=st.session_state['opt_list']
+  if strike_price==0 or expiry=="-": return None
+  filter_df=token_df[((token_df['name'] == idx_symbol) & 
+                    ((token_df['exch_seg'] == 'NFO') | (token_df['exch_seg'] == 'BFO')) &
+                    (token_df['expiry'] == expiry) & token_df['symbol'].str.endswith(ce_pe))]
+  if ce_pe == "CE":
+    filter_df= filter_df[(filter_df['strike'] >= strike_price*100)].sort_values(by=['strike'], ascending=True)
+  else:
+    filter_df= filter_df[(filter_df['strike'] <= strike_price*100)].sort_values(by=['strike'], ascending=False)
+  return filter_df.iloc[0]
+def get_near_options():
+  symbol_list=['NIFTY','SENSEX']
+  df = pd.DataFrame()
+  token_df=st.session_state['opt_list']
+  for symbol in symbol_list:
+    try:
+        indexLtp=get_ltp_price(symbol)
+        ltp=indexLtp*100
+        if symbol=="BANKNIFTY": expiry_day=st.session_state['bnf_expiry_day']
+        elif symbol=="NIFTY": expiry_day=st.session_state['nf_expiry_day']
+        elif symbol=="SENSEX": expiry_day=st.session_state['bse_expiry_day']
+        a = (token_df[(token_df['name'] == symbol) & (token_df['expiry']==expiry_day) & (token_df['strike']>=ltp) &
+                        (token_df['symbol'].str.endswith('CE'))].sort_values(by=['strike']).head(2)).sort_values(by=['strike'], ascending=True)
+        a.reset_index(inplace=True)
+        a['Serial'] = a['index'] + 1
+        a.drop(columns=['index'], inplace=True)
+        b=(token_df[(token_df['name'] == symbol) & (token_df['expiry']==expiry_day) & (token_df['strike']<=ltp) &
+                        (token_df['symbol'].str.endswith('PE'))].sort_values(by=['strike']).tail(2)).sort_values(by=['strike'], ascending=False)
+        b.reset_index(inplace=True)
+        b['Serial'] = b['index'] + 1
+        b.drop(columns=['index'], inplace=True)
+        df=pd.concat([df, a,b])
+    except Exception as e:
+      print(f"Error in get_near_options {e}")
+  df.sort_index(inplace=True)
+  st.session_state['near_opt_df']=df
+  near_opt_df.dataframe(st.session_state['near_opt_df'],hide_index=True)
+  return df
+
+def update_app_info():
+    get_order_book()
+    get_open_position()
+    get_near_options()
+    print_ltp()
+    log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
