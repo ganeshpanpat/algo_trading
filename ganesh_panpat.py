@@ -168,3 +168,136 @@ def get_token_df():
     st.session_state['bse_expiry_day'] = bse_expiry_df['expiry'].min()
   
 if len(st.session_state['opt_list'])==0 :get_token_df()
+
+# Order Book
+def get_order_book():
+  try:
+    orderbook=obj.orderBook()
+    if orderbook['status']==True and orderbook['data'] is not None:
+      orderbook=orderbook['data']
+      orderbook=pd.DataFrame(orderbook)
+      g_orderbook=orderbook[['updatetime','orderid','transactiontype','status','tradingsymbol','price','averageprice','quantity','ordertag']]
+      g_orderbook['updatetime'] = pd.to_datetime(g_orderbook['updatetime']).dt.time
+      g_orderbook = g_orderbook.sort_values(by=['updatetime'], ascending=[False])
+      order_datatable.dataframe(g_orderbook,hide_index=True)
+      order_book_updated.text(f"Orderbook : {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}")
+      pending_orders = orderbook[((orderbook['orderstatus'] != 'complete') & (orderbook['orderstatus'] != 'cancelled') &
+                              (orderbook['orderstatus'] != 'rejected') & (orderbook['orderstatus'] != 'AMO CANCELLED'))]
+      pending_orders = pending_orders[(pending_orders['instrumenttype'] == 'OPTIDX')]
+      n_pending_orders=pending_orders[['updatetime','orderid','transactiontype','status','tradingsymbol','price','averageprice','quantity','ordertag']]
+      n_pending_orders = n_pending_orders.sort_values(by=['updatetime'], ascending=[False])
+      open_order.dataframe(n_pending_orders,hide_index=True)
+      open_order_updated.text(f"Pending Orderbook : {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}")
+      return orderbook,pending_orders
+    else:
+      order_book_updated.text(f"No Order : {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}")
+      return None,None
+  except Exception as e:
+    logger.info(f'Error in getting order book {e}')
+    order_book_updated.text(f"Error in getting Orderbook : {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}")
+    return None,None
+
+def get_open_position():
+  try:
+    position=obj.position()
+    if position['status']==True and position['data'] is not None:
+      position=position['data']
+      position=pd.DataFrame(position)
+      position[['realised', 'unrealised']] = position[['realised', 'unrealised']].astype(float)
+      pnl=int(position['realised'].sum())+float(position['unrealised'].sum())
+      open_position = position[(position['netqty'] > '0') & (position['instrumenttype'] == 'OPTIDX')]
+      if len(open_position)==0:open_position=None
+      position_datatable.dataframe(position[['tradingsymbol',"totalbuyavgprice","totalsellavgprice","netqty",'realised', 'unrealised','ltp']],hide_index=True)
+      position_updated.text(f"PNL : {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}: {pnl}")
+      return position,open_position
+    else:
+      position_updated.text(f"No Open Position : {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}")
+      return None,None
+  except Exception as e:
+    position_updated.text(f"error in get_open_position : {datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)}")
+    logger.info(f"error in get_open_position: {e}")
+    return None,None  
+
+#Orders
+def place_order(token,symbol,qty,buy_sell,ordertype='MARKET',price=0,variety='NORMAL',exch_seg='NFO',ordertag='-'):
+  try:
+    if variety=='NORMAL': triggerprice = squareoff = stoploss = 0
+    else: triggerprice = squareoff = stoploss = price * 1.02
+    orderparams =  {"variety":variety, "tradingsymbol": symbol,
+            "symboltoken": str(token), "transactiontype": buy_sell,
+            "exchange": exch_seg, "ordertype": ordertype,
+            "producttype": "CARRYFORWARD", "duration": "DAY",
+            "price": str(price), "squareoff": str(squareoff),
+            "stoploss": str(stoploss), "quantity": str(qty),"triggerprice":str(triggerprice),"ordertag":ordertag}
+    orderId=obj.placeOrder(orderparams)
+    return orderId
+  except Exception as e:
+    logger.info(f"error in place_order Order placement failed: {e}")
+    orderId='Order placement failed'
+    telegram_bot_sendtext(f'{buy_sell} Order placement failed : {symbol}')
+    return orderId
+def modify_order(variety,orderid,ordertype,producttype,price,quantity,tradingsymbol,symboltoken,exchange,
+                 triggerprice=0,squareoff=0,stoploss=0):
+  try:
+    modifyparams = {"variety": variety,"orderid": orderid,
+                    "ordertype": ordertype,"producttype": producttype,
+                    "duration": "DAY","price": price,
+                    "quantity": quantity,"tradingsymbol":tradingsymbol,
+                    "symboltoken":symboltoken,"exchange":exchange,
+                    "squareoff":squareoff,"stoploss": stoploss,"triggerprice":triggerprice}
+    obj.modifyOrder(modifyparams)
+  except Exception as e:
+    logger.info(f"error in modify_order: {e}")
+def cancel_order(orderID,variety):
+  try:
+    obj.cancelOrder(orderID,variety=variety)
+  except Exception as e:
+    logger.info(f"Error cancel_order: {e}")
+def cancel_all_order(symbol):
+  try:
+    orderbook,pending_orders=get_order_book()
+    if isinstance(orderbook,NoneType)!=True:
+      orderlist = orderbook[(orderbook['tradingsymbol'] == symbol) &
+                            ((orderbook['orderstatus'] != 'complete') & (orderbook['orderstatus'] != 'cancelled') &
+                              (orderbook['orderstatus'] != 'rejected') & (orderbook['orderstatus'] != 'AMO CANCELLED'))]
+      orderlist_a = orderbook[(orderbook['tradingsymbol'] == symbol) & (orderbook['variety'] == 'ROBO') &
+                              (orderbook['transactiontype'] == 'BUY') & (orderbook['orderstatus'] == 'complete')]
+      orderlist=pd.concat([orderlist,orderlist_a])
+      for i in range(0,len(orderlist)):
+        cancel_order(orderlist.iloc[i]['orderid'],orderlist.iloc[i]['variety'])
+  except Exception as e:
+    logger.info(f"Error cancel_all_order: {e}")
+def buy_option(option_token,option_symbol,exch_seg,lotsize,ltp_price,indicator_strategy="Manual Buy"):
+  try:
+    if option_symbol.startswith('NIFTY') or option_symbol.startswith('BANKNIFTY') or option_symbol.startswith('SENSEX'):
+      ordertype='MARKET';price=0
+    else:
+      ordertype='LIMIT'
+      price=float(get_ltp_price(symbol=option_symbol,token=option_token,exch_seg=exch_seg))
+    orderId=place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell="BUY",
+                        ordertype=ordertype,price=price,variety='NORMAL',
+                        exch_seg=exch_seg,ordertag=indicator_strategy)
+    
+    if str(orderId)=='Order placement failed':
+      telegram_bot_sendtext(f'Order Failed Buy: {option_symbol} Indicator {indicator_strategy}')
+      return
+    try:
+      ltp_price=round(float(get_ltp_price(symbol=option_symbol,token=option_token,exch_seg=exch_seg)),2)
+      stop_loss=int(ltp_price*0.7)
+      target_price=int(ltp_price*1.5)
+      indicator_strategy=indicator_strategy+ " LTP:"+str(int(ltp_price))+"("+str(int(stop_loss))+":"+str(int(target_price))+")"
+      buy_msg=(f'Buy: {option_symbol}\nLTP: {ltp_price}\n{indicator_strategy}\nTarget: {target_price} Stop Loss: {stop_loss}')
+    except:
+      ltp_price=0
+    orderbook=obj.orderBook()['data']
+    orderbook=pd.DataFrame(orderbook)
+    orders= orderbook[(orderbook['orderid'] == orderId)]
+    orders_status=orders.iloc[0]['orderstatus']
+    telegram_bot_sendtext(buy_msg+"\nOrder Status:" + orders_status)
+    if orders_status== 'complete':
+     place_order(token=option_token,symbol=option_symbol,qty=lotsize,buy_sell='SELL',ordertype='STOPLOSS_LIMIT',price=stop_loss,
+                    variety='STOPLOSS',exch_seg=exch_seg,producttype='CARRYFORWARD',triggerprice=stop_loss,squareoff=stop_loss,
+                    stoploss=stop_loss, ordertag=str(orderId)+" Stop Loss order Placed")
+  except Exception as e:
+    logger.info(f"Error in buy_option: {e}")
+    telegram_bot_sendtext(f"Error in buy_option: {e}")
