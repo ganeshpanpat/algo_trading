@@ -1,12 +1,2 @@
-altair
-numpy
-pandas==2.2.2
-pydeck
 streamlit
-yfinance==0.2.9
-pandas_ta
-smartapi-python==1.4.8
-websocket-client==1.8.0
-requests==2.32.3
-pyotp==2.8.0
-logzero
+numpy
