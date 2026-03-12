@@ -4,7 +4,7 @@ import requests
 import datetime
 from dateutil.tz import gettz
 import pandas as pd
-from SmartApi.smartConnect import SmartConnect
+from SmartApi import SmartConnect
 import pyotp
 from logzero import logger
 import warnings
