@@ -128,3 +128,43 @@ with near_opt_tb:
   near_opt_updated.text(f"Near Option Updated : ")
   near_opt_df=st.empty()
   near_opt_df=st.dataframe(st.session_state['near_opt_df'],hide_index=True)
+
+def telegram_bot_sendtext(bot_message):
+  BOT_TOKEN = '5051044776:AAHh6XjxhRT94iXkR4Eofp2PPHY3Omk2KtI'
+  BOT_CHAT_ID = '-1001542241163'
+  try:
+    bot_message=st.session_state['Logged_in']+':\n'+bot_message
+    send_text = 'https://api.telegram.org/bot' + BOT_TOKEN + '/sendMessage?chat_id=' + BOT_CHAT_ID + \
+                  '&parse_mode=HTML&text=' + bot_message
+    response = requests.get(send_text)
+  except Exception as e: pass
+
+def get_token_df():
+    url = 'https://margincalculator.angelbroking.com/OpenAPI_File/files/OpenAPIScripMaster.json'
+    d = requests.get(url).json()
+    token_df = pd.DataFrame.from_dict(d)
+    token_df['expiry'] = pd.to_datetime(token_df['expiry']).apply(lambda x: x.date())
+    token_df = token_df.astype({'strike': float})
+    token_df = token_df.sort_values(by=['name', 'strike'])
+    st_list=token_df[token_df['name'].isin(fut_list)]
+    st_list = st_list[((st_list['exch_seg'] == 'NSE') | (st_list['exch_seg'] == 'BSE')) & (st_list['symbol'].str.endswith('-EQ'))]
+    idx_list = token_df[(token_df['token'] == '99926000') | (token_df['token'] == '99919000')]
+    combined_list = pd.concat([idx_list, st_list])
+    for index, row in combined_list.iterrows():
+        symbol_name = row['name']
+        nfo_expiry = token_df[
+            (token_df['name'] == symbol_name) & ((token_df['exch_seg'] == 'NFO') | (token_df['exch_seg'] == 'BFO')) &
+            (token_df['instrumenttype'] != 'FUTIDX') & (token_df['instrumenttype'] != 'FUTSTK')]['expiry'].min()
+        combined_list.at[index, 'expiry'] =nfo_expiry
+    token_df = token_df[((token_df['exch_seg'] == 'NFO') | (token_df['exch_seg'] == 'BFO'))]
+    st.session_state['opt_list']=token_df
+    st.session_state['stk_opt_list']=combined_list
+    now_dt=datetime.datetime.now(tz=gettz('Asia/Kolkata')).date()-datetime.timedelta(days=0)
+    nf_expiry_df = token_df[(token_df['name'] == 'NIFTY') & (token_df['instrumenttype'] == 'OPTIDX') & (token_df['expiry']>=now_dt)]
+    st.session_state['nf_expiry_day'] = nf_expiry_df['expiry'].min()
+    bnf_expiry_df = token_df[(token_df['name'] == 'BANKNIFTY') & (token_df['instrumenttype'] == 'OPTIDX') & (token_df['expiry']>=now_dt)]
+    st.session_state['bnf_expiry_day'] = bnf_expiry_df['expiry'].min()
+    bse_expiry_df = token_df[(token_df['name'] == 'SENSEX') & (token_df['instrumenttype'] == 'OPTIDX') & (token_df['expiry']>=now_dt)]
+    st.session_state['bse_expiry_day'] = bse_expiry_df['expiry'].min()
+  
+if len(st.session_state['opt_list'])==0 :get_token_df()
