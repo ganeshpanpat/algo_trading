@@ -31,6 +31,7 @@ if 'orderbook' not in st.session_state:st.session_state['orderbook']=[]
 if 'opt_list' not in st.session_state:st.session_state['opt_list']=[]
 if 'stk_opt_list' not in st.session_state:st.session_state['stk_opt_list']=[]
 if 'near_opt_df' not in st.session_state:st.session_state['near_opt_df']=[]
+if 'todays_trade_df' not in st.session_state:st.session_state['todays_trade_df']=[]
 login_details=st.empty()
 login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
 index_ltp_string=st.empty()
@@ -54,8 +55,8 @@ else:
   st.session_state['login_time']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
   st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
 login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
-log_tb, order_tb, position_tb, open_odr_tb, setting_tb, token_tb, stk_token_tb, near_opt_tb= st.tabs(["Log","Order Book", "Position",
-                "Open Order", "Settings","Token List","Stock List",'Near Options'])
+log_tb, order_tb, position_tb, open_odr_tb, setting_tb, token_tb, stk_token_tb, near_opt_tb,todays_trade= st.tabs(["Log","Order Book", "Position",
+                "Open Order", "Settings","Token List","Stock List",'Near Options','Todays Trade'])
 with log_tb:
   col1,col2=st.columns([1,9])
   with col1:
@@ -129,6 +130,12 @@ with near_opt_tb:
   near_opt_updated.text(f"Near Option Updated : ")
   near_opt_df=st.empty()
   near_opt_df=st.dataframe(st.session_state['near_opt_df'],hide_index=True)
+
+with todays_trade:
+  todays_trade_updated=st.empty()
+  todays_trade_updated.text(f"Todays Trade Updated : ")
+  todays_trade_df=st.empty()
+  todays_trade_df=st.dataframe(st.session_state['todays_trade_df'],hide_index=True)
 
 def telegram_bot_sendtext(bot_message):
   BOT_TOKEN = '5051044776:AAHh6XjxhRT94iXkR4Eofp2PPHY3Omk2KtI'
