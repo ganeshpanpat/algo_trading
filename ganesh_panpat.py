@@ -53,5 +53,78 @@ else:
   st.session_state['login_time']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
   st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
 login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
+log_tb, order_tb, position_tb, open_odr_tb, setting_tb, token_tb, stk_token_tb, near_opt_tb= st.tabs(["Log","Order Book", "Position",
+                "Open Order", "Settings","Token List","Stock List",'Near Options'])
+with log_tb:
+  col1,col2=st.columns([1,9])
+  with col1:
+    nf_ce=st.button(label="NF CE")
+    bnf_ce=st.button(label="BSE CE")
+    nf_pe=st.button(label="NF PE")
+    bnf_pe=st.button(label="BSE PE")
+    close_all=st.button("Close All")
+    restart=st.button("Restart")
+    algo_state=st.checkbox("Run Algo")
+  with col2:
+    trade_info=st.empty()
+    log_holder=st.empty()
 
-  
+with order_tb:
+  order_book_updated=st.empty()
+  order_book_updated.text(f"Orderbook : ")
+  order_datatable=st.empty()
+
+with position_tb:
+  position_updated=st.empty()
+  position_updated.text(f"Position : ")
+  position_datatable=st.empty()
+
+with open_odr_tb:
+  open_order_updated=st.empty()
+  open_order_updated.text(f"Open Order : ")
+  open_order=st.empty()
+
+with setting_tb:
+  ind_col1,ind_col2=st.columns([5,1.5])
+  indicator_list=['TEMA_EMA_9 Trade','MA_50_ST Trade','ST_7_3 Trade', 'ST_10_2 Trade','ST_10_1 Trade','RSI MA Trade','RSI_60 Trade','MACD Trade','PSAR Trade',
+                  'DI Trade','MA Trade','EMA Trade','EMA_5_7 Trade','MA 21 Trade','HMA Trade','RSI_60 Trade','EMA_High_Low Trade',
+                  'Two Candle Theory','Multi Time ST Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade']
+  with ind_col1:
+    index_list=st.multiselect('Select Index',['NIFTY','BANKNIFTY','SENSEX','FINNIFTY'],['NIFTY', 'SENSEX'])
+    fut_list=st.multiselect('Select Future',['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'],['TCS','SBIN','RELIANCE','SAIL','TRENT','HDFCBANK'])
+    time_frame_interval = st.multiselect('Select Time Frame',['IDX:5M','IDX:15M','IDX:1M','OPT:5M','OPT:1M','GTT:5M','STK:5M'],['IDX:5M','OPT:5M','STK:5M'])
+    five_buy_indicator = st.multiselect('5M Indicator',indicator_list,['ST_7_3 Trade'])
+    five_opt_buy_indicator = st.multiselect('5M OPT Indicator',indicator_list,['ST_7_3 Trade'])
+    five_stk_buy_indicator = st.multiselect('5M STK Indicator',indicator_list,['MA_50_ST Trade','ST_7_3 Trade'])
+    gtt_indicator=st.multiselect('GTT Indicator',['5M_ST','5M_ST_10_2','1M_10_1','1M_10_2'],['5M_ST','5M_ST_10_2'])
+    one_buy_indicator = st.multiselect('1M Indicator',indicator_list,[])
+    one_opt_buy_indicator = st.multiselect('1M OPT Indicator',indicator_list,[])
+    fifteen_buy_indicator = st.multiselect('15M Indicator',indicator_list,['MA_50_ST Trade'])
+    three_buy_indicator = st.multiselect('3M Indicator',indicator_list,[])
+    with ind_col2:
+      lots_to_trade=st.number_input(label="Lots To Trade",min_value=1, max_value=10, value=1, step=None)
+      target_order_type = st.selectbox('Target Order',('Target', 'Stop_Loss', 'NA'),1)
+      target_type = st.selectbox('Target Type',('Points', 'Per Cent','Indicator','ATR'),3)
+      if target_type=="ATR":
+        sl_point=st.number_input(label="SL",min_value=1, max_value=100, value=3, step=None)
+        target_point=st.number_input(label="Target",min_value=1, max_value=100, value=3, step=None)
+      elif target_type!="Per Cent":
+        sl_point=st.number_input(label="SL",min_value=1, max_value=100, value=30, step=None)
+        target_point=st.number_input(label="Target",min_value=1, max_value=100, value=50, step=None)
+      elif target_type!="Indicator":
+        sl_point=st.number_input(label="SL",min_value=1, max_value=100, value=30, step=None)
+        target_point=st.number_input(label="Target",min_value=1, max_value=100, value=50, step=None)
+
+with token_tb:
+    token_df=st.empty()
+    token_df=st.dataframe(st.session_state['opt_list'],hide_index=True)
+
+with stk_token_tb:
+    stk_token_df=st.empty()
+    stk_token_df=st.dataframe(st.session_state['stk_opt_list'],hide_index=True)
+
+with near_opt_tb:
+  near_opt_updated=st.empty()
+  near_opt_updated.text(f"Near Option Updated : ")
+  near_opt_df=st.empty()
+  near_opt_df=st.dataframe(st.session_state['near_opt_df'],hide_index=True)
