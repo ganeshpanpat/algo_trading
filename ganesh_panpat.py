@@ -21,13 +21,6 @@ st.markdown("""
   </style>
   """, unsafe_allow_html=True)
 st.text("Welcome To Algo Trading")
-st.set_page_config(page_title="Algo App",layout="wide",initial_sidebar_state="expanded",)
-st.markdown("""
-  <style>
-    .block-container {padding-top: 3rem;padding-bottom: 0rem;padding-left: 2rem;padding-right: 2rem;}
-  </style>
-  """, unsafe_allow_html=True)
-st.text("Welcome To Algo Trading")
 if 'Logged_in' not in st.session_state:st.session_state['Logged_in']="Guest"
 if 'login_time' not in st.session_state:st.session_state['login_time']="login_time"
 if 'last_check' not in st.session_state:st.session_state['last_check']="last_check"
@@ -60,4 +53,5 @@ else:
   st.session_state['login_time']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
   st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
 login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
+
   
