@@ -8,4 +8,4 @@ requests
 pyotp
 logzero
 attrs
-
+pandas_ta
