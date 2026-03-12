@@ -301,3 +301,201 @@ def buy_option(option_token,option_symbol,exch_seg,lotsize,ltp_price,indicator_s
   except Exception as e:
     logger.info(f"Error in buy_option: {e}")
     telegram_bot_sendtext(f"Error in buy_option: {e}")
+
+#Historical Data
+def yfna_data(symbol,interval,period):
+  try:
+    df=yf.Ticker(symbol).history(interval=interval,period=str(period)+"d")
+    df['Datetime'] = df.index
+    df['Datetime']=df['Datetime'].dt.tz_localize(None)
+    df.index=df['Datetime']
+    df=df[['Datetime','Open','High','Low','Close','Volume']]
+    df['Date']=df['Datetime'].dt.strftime('%m/%d/%y')
+    df['Datetime'] = pd.to_datetime(df['Datetime']).dt.time
+    df=df[['Date','Datetime','Open','High','Low','Close','Volume']]
+    df=df.round(2)
+    if isinstance(df, str) or (isinstance(df, pd.DataFrame)==True and len(df)==0):
+      logger.info(f"Yahoo Data Not Found {symbol}: {e}")
+      return "No data found, symbol may be delisted"
+    return df
+  except Exception as e:
+    logger.info(f"error in yfna_data {symbol}: {e}")
+    return None
+def angel_data(token,interval,exch_seg,period=5):
+  try:
+    to_date= datetime.datetime.now(tz=gettz('Asia/Kolkata'))
+    from_date = to_date - datetime.timedelta(days=period)
+    fromdate = from_date.strftime("%Y-%m-%d %H:%M")
+    todate = to_date.strftime("%Y-%m-%d %H:%M")
+    historicParam={"exchange": exch_seg,"symboltoken": token,"interval": interval,"fromdate": fromdate, "todate": todate}
+    res_json=obj.getCandleData(historicParam)
+    df = pd.DataFrame(res_json['data'], columns=['timestamp','O','H','L','C','V'])
+    df = df.rename(columns={'timestamp':'Datetime','O':'Open','H':'High','L':'Low','C':'Close','V':'Volume'})
+    df['Datetime'] = df['Datetime'].apply(lambda x: datetime.datetime.fromisoformat(x))
+    df['Datetime'] = pd.to_datetime(df['Datetime'],format = '%Y-%m-%d %H:%M:%S')
+    df['Datetime']=df['Datetime'].dt.tz_localize(None)
+    df = df.set_index('Datetime')
+    df['Datetime']=pd.to_datetime(df.index,format = '%Y-%m-%d %H:%M:%S')
+    df['Date']=df['Datetime'].dt.strftime('%m/%d/%y')
+    df['Datetime'] = pd.to_datetime(df['Datetime']).dt.time
+    df=df[['Date','Datetime','Open','High','Low','Close','Volume']]
+    return df
+  except Exception as e:
+    logger.info(f"error in angel_data : token {token} {e}")
+    return None
+def get_historical_data(symbol="-",interval='5m',token="-",exch_seg="-",candle_type="NORMAL"):
+  try:
+    symbol_i="-";df=None
+    if (symbol=="^NSEI" or symbol=="NIFTY") : symbol_i,token,exch_seg="^NSEI",99926000,"NSE"
+    elif (symbol=="^NSEBANK" or symbol=="BANKNIFTY") : symbol_i,token,exch_seg="^NSEBANK",99926009,"NSE"
+    elif (symbol=="^BSESN" or symbol=="SENSEX") : symbol_i,token,exch_seg="^BSESN",99919000,"BSE"
+    if symbol in ['TCS','RELIANCE','HDFCBANK','SAIL','SBIN','TRENT']:symbol_i=symbol + ".NS"
+    if (interval=="5m" or interval=='FIVE_MINUTE'): period,delta_time,agl_interval,yf_interval=5,5,"FIVE_MINUTE","5m"
+    elif (interval=="1m" or interval=='ONE_MINUTE') : period,delta_time,agl_interval,yf_interval=1,1,"ONE_MINUTE","1m"
+    elif (interval=="15m" or interval=='FIFTEEN_MINUTE'): period,delta_time,agl_interval,yf_interval=5,15,"FIFTEEN_MINUTE","15m"
+    elif (interval=="60m" or interval=='ONE_HOUR'): period,delta_time,agl_interval,yf_interval=30,60,"ONE_HOUR","60m"
+    elif (interval=="1d" or interval=='ONE_DAY') : period,delta_time,agl_interval,yf_interval=100,5,"ONE_DAY","1d"
+    else:period,delta_time,agl_interval,yf_interval=5,1,"ONE_MINUTE","1m"
+    if  symbol[-3:]=='.NS':symbol_i=symbol
+    df=angel_data(token,agl_interval,exch_seg,period)
+    now=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0, tzinfo=None)
+    now=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0, tzinfo=None)
+    last_candle=now.replace(second=0, microsecond=0)- datetime.timedelta(minutes=delta_time)
+    df = df[(df.index <= last_candle)]
+    df['Time Frame']=yf_interval
+    df['Time']=now.time()
+    df.index.names = ['']
+    df['VWAP']=pdta.vwap(high=df['High'],low=df['Low'],close=df['Close'],volume=df['Volume'])
+    df = df.reset_index(drop=True)
+    df=df[['Time','Date','Datetime','Open','High','Low','Close','Volume','VWAP','Time Frame']]
+    df['Symbol']=symbol
+    df=calculate_indicator(df)
+    df=df.round(2)
+    return df
+  except Exception as e:
+    logger.info(f"error in get_historical_data: {e}")
+    return None
+def calculate_indicator(df):
+  try:
+    df['RSI']=pdta.rsi(df['Close'],timeperiod=9)
+    df['RSI_14']=pdta.rsi(df['Close'],timeperiod=14)
+    df['MACD']=pdta.macd(close=df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)['MACD_12_26_9']
+    df['MACD signal']=pdta.macd(close=df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)['MACDs_12_26_9']
+    df['Macdhist']=pdta.macd(close=df['Close'], fastperiod=12, slowperiod=26, signalperiod=9)['MACDh_12_26_9']
+    df['Supertrend']=pdta.supertrend(high=df['High'],low=df['Low'],close=df['Close'],length=7,multiplier=3)['SUPERT_7_3.0']
+    df['Supertrend_10_2']=pdta.supertrend(high=df['High'],low=df['Low'],close=df['Close'],length=10,multiplier=2)['SUPERT_10_2.0']
+    df['Supertrend_10_1']=pdta.supertrend(high=df['High'],low=df['Low'],close=df['Close'],length=10,multiplier=1)['SUPERT_10_1.0']
+    df['Atr']=pdta.atr(high=df['High'], low=df['Low'], close=df['Close'], length=14)
+    df['Tema_9']=pdta.tema(df['Close'],9)
+    df['EMA_9']=pdta.ema(df['Close'],length=6)
+    df['RSI_9']=pdta.rsi(df['Close'],timeperiod=9)
+    df['WMA_RSI_9']=pdta.wma(df['RSI_9'],length=9)
+    df['MA_50']=df['Close'].rolling(50).mean()
+    #df['UBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBU_20_2.0']
+    #df['MBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBM_20_2.0']
+    #df['LBB']=pdta.bbands(df['Close'],length=20, std=2, ddof=0)['BBL_20_2.0']
+    #df['Supertrend_10_4']=pdta.supertrend(high=df['High'],low=df['Low'],close=df['Close'],length=10,multiplier=4)['SUPERT_10_4.0']
+    #df['Supertrend_10_8']=pdta.supertrend(high=df['High'],low=df['Low'],close=df['Close'],length=10,multiplier=8)['SUPERT_10_8.0']
+    #df['PSAR']=pdta.psar(high=df['High'],low=df['Low'],acceleration=0.02, maximum=0.2)['PSARl_0.02_0.2']
+    #df['ADX']=pdta.adx(df['High'],df['Low'],df['Close'],14)['ADX_14']
+    #df['MINUS_DI']=pdta.adx(df['High'],df['Low'],df['Close'],14)['DMN_14']
+    #df['PLUS_DI']=pdta.adx(df['High'],df['Low'],df['Close'],14)['DMP_14']
+    #df['MA_200']=df['Close'].rolling(200).mean()
+    #df['MA_50']=df['Close'].rolling(50).mean()
+    #df['EMA_12']=pdta.ema(df['Close'],length=12)
+    #df['EMA_26']=pdta.ema(df['Close'],length=26)
+    #df['EMA_13']=pdta.ema(df['Close'],length=13)
+    #df['EMA_5']=pdta.ema(df['Close'],length=5)
+    #df['EMA_7']=pdta.ema(df['Close'],length=7)
+    #df['MA_1']=df['Close'].rolling(1).mean()
+    #df['MA_2']=df['Close'].rolling(2).mean()
+    #df['MA_3']=df['Close'].rolling(3).mean()
+    #df['MA_4']=df['Close'].rolling(4).mean()
+    #df['MA_5']=df['Close'].rolling(5).mean()
+    #df['MA_6']=df['Close'].rolling(6).mean()
+    #df['MA_7']=df['Close'].rolling(7).mean()
+    #df['MA_8']=df['Close'].rolling(8).mean()
+    #df['MA_9']=df['Close'].rolling(9).mean()
+    #df['MA_10']=df['Close'].rolling(10).mean()
+    #df['MA_21']=pdta.ema(df['Close'],length=21)
+    #df['WMA_20']=pdta.wma(df['Close'],length=20)
+    #df['HMA_21']=pdta.hma(df['Close'],length=21)
+    #df['HMA_55']=pdta.hma(df['Close'],length=55)
+    #df['RSI_MA']=df['RSI'].rolling(14).mean()
+    #df['EMA_High']=pdta.ema(df['High'],length=21)
+    #df['EMA_Low']=pdta.ema(df['Low'],length=21)
+    #df = df.round(decimals=2)
+    df=get_trade_info(df)
+    return df
+  except Exception as e:
+    logger.info(f"Error in calculate Indicator: {e}")
+    return df
+def get_trade_info(df):
+    trade_columns = ['ST_7_3 Trade','MACD Trade','PSAR Trade','DI Trade','MA Trade','EMA Trade','BB Trade','Trade','Trade End',
+                     'Rainbow MA','Rainbow Trade','MA 21 Trade','ST_10_2 Trade','Two Candle Theory','HMA Trade','VWAP Trade',
+                     'EMA_5_7 Trade','ST_10_4_8 Trade','EMA_High_Low Trade','RSI MA Trade','RSI_60 Trade','ST_10_1 Trade',
+                     'TEMA_EMA_9 Trade','RSI_WMA_9 Trade','High Break Trade','Vwap ST_7_3 Trade','MA_50_ST Trade','MA_50 Trade']
+    for col in trade_columns:df[col] = '-'
+    time_frame = df['Time Frame'][0]
+    Symbol = df['Symbol'][0]
+    if Symbol in ["^NSEBANK", "BANKNIFTY", "^NSEI", "NIFTY", "SENSEX", "^BSESN"] : symbol_type = "IDX"
+    elif Symbol in fut_list: symbol_type="STK"
+    else: symbol_type= "OPT"
+    indicator_list = []
+    if symbol_type == "IDX":
+        if time_frame == "5m":indicator_list = five_buy_indicator
+        elif time_frame == "15m":indicator_list = fifteen_buy_indicator
+        else:indicator_list = ['ST_7_3 Trade', 'ST_10_2 Trade', 'TEMA_EMA_9 Trade', 'RSI_60 Trade']
+    elif symbol_type == "OPT":
+        if time_frame == "5m":indicator_list = five_opt_buy_indicator
+        elif time_frame == "15m":indicator_list = []
+        elif time_frame == "1m":indicator_list = one_opt_buy_indicator
+        else:indicator_list = ['ST_7_3 Trade', 'ST_10_2 Trade', 'TEMA_EMA_9 Trade', 'RSI_60 Trade']
+    elif symbol_type=="STK":indicator_list=five_buy_indicator
+    else:indicator_list = ['ST_7_3 Trade', 'ST_10_2 Trade']
+    df['Indicator'] = symbol_type
+    df['Trade'] = "-"
+    df['Trade End'] = "-"
+    sl="-"
+    try:
+        if len(df) >= 2:
+            i = len(df) - 1
+            prev = df.iloc[i-1]
+            curr = df.iloc[i]
+            close_prev = prev['Close']
+            close_curr = curr['Close']
+            # ---- Supertrend 7_3 ----
+            if close_prev <= prev['Supertrend'] and close_curr > curr['Supertrend']: df.loc[i, 'ST_7_3 Trade'] = "Buy"
+            elif close_prev >= prev['Supertrend'] and close_curr < curr['Supertrend']: df.loc[i, 'ST_7_3 Trade'] = "Sell"
+            # ---- MACD ----
+            if curr['MACD'] > curr['MACD signal'] and prev['MACD'] < prev['MACD signal']:df.loc[i, 'MACD Trade'] = "Buy"
+            elif curr['MACD'] < curr['MACD signal'] and prev['MACD'] > prev['MACD signal']:df.loc[i, 'MACD Trade'] = "Sell"
+            # ---- Supertrend 10_2 ----
+            if close_prev < prev['Supertrend_10_2'] and close_curr > curr['Supertrend_10_2']:df.loc[i, 'ST_10_2 Trade'] = "Buy"
+            elif close_prev > prev['Supertrend_10_2'] and close_curr < curr['Supertrend_10_2']:df.loc[i, 'ST_10_2 Trade'] = "Sell"
+            # ---- Supertrend 10_1 ----
+            if close_prev < prev['Supertrend_10_1'] and close_curr > curr['Supertrend_10_1']:df.loc[i, 'ST_10_1 Trade'] = "Buy"
+            elif close_prev > prev['Supertrend_10_1'] and close_curr < curr['Supertrend_10_1']:df.loc[i, 'ST_10_1 Trade'] = "Sell"
+            # ---- TEMA EMA ----
+            if prev['Tema_9'] < prev['EMA_9'] and curr['Tema_9'] > curr['EMA_9'] and int(curr['RSI']) >= 55:df.loc[i, 'TEMA_EMA_9 Trade'] = "Buy"
+            elif prev['Tema_9'] > prev['EMA_9'] and curr['Tema_9'] < curr['EMA_9']: df.loc[i, 'TEMA_EMA_9 Trade'] = "Sell"
+            # ---- RSI Trades ----
+            if int(curr['RSI']) >= 60 and int(prev['RSI']) < 60: df.loc[i, 'RSI_60 Trade'] = "Buy"
+            if int(curr['RSI_9']) >= int(curr['WMA_RSI_9']) and int(prev['RSI_9']) <= int(prev['WMA_RSI_9']):df.loc[i, 'RSI_WMA_9 Trade'] = "Buy"
+            # ---- MA50 ----
+            if close_prev <= prev['MA_50'] and close_curr > curr['MA_50']:df.loc[i, 'MA_50 Trade'] = "Buy"
+            elif close_prev >= prev['MA_50'] and close_curr < curr['MA_50']:df.loc[i, 'MA_50 Trade'] = "Sell"
+            # ---- Combined MA50 + ST ----
+            if df.loc[i, 'MA_50 Trade'] == "Buy" and df.loc[i, 'ST_7_3 Trade'] == "Buy":df.loc[i, 'MA_50_ST Trade'] = "Buy"
+            elif df.loc[i, 'MA_50 Trade'] == "Sell" and df.loc[i, 'ST_7_3 Trade'] == "Sell":df.loc[i, 'MA_50_ST Trade'] = "Sell"
+
+            # ---- Final Trade ----
+            for indicator_trade in indicator_list:
+                trade_val = df.loc[i, indicator_trade]
+                if trade_val in ("Buy", "Sell"):
+                    df.loc[i, 'Trade'] = trade_val
+                    df.loc[i, 'Trade End'] = trade_val
+                    df.loc[i, 'Indicator'] += f":{indicator_trade} ATR:{int(curr['Atr'])}"
+                    break
+    except Exception as e: pass
+    return df
