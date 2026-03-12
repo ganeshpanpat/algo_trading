@@ -4,6 +4,7 @@ import requests
 import datetime
 from dateutil.tz import gettz
 import pandas as pd
+import pandas_ta as pdta
 from SmartApi import SmartConnect
 import pyotp
 from logzero import logger
@@ -499,3 +500,49 @@ def get_trade_info(df):
                     break
     except Exception as e: pass
     return df
+#Ltp
+def get_yf_ltp(symbol="-",token="-",exch_seg='-'):
+  try:
+    data=yf.Ticker(symbol).history(interval='1m',period='3d')
+    return round(float(data['Close'].iloc[-1]),2)
+  except Exception as e:
+    logger.info(f"error in get_yf_ltp: {e}")
+    return "Unable to get LTP"
+def get_angel_ltp(symbol="-",token="-",exch_seg='-'):
+    try:
+      market_data = obj.getMarketData("LTP", {"exch_seg": [token]})
+      return market_data['data']['fetched'][0]['ltp']
+    except Exception as e:
+        try:
+            ltp_data = obj.ltpData(exch_seg, symbol, token)
+            return ltp_data['data']['ltp']
+        except Exception as e: return "Unable to get LTP"
+def get_ltp_price(symbol="-",token="-",exch_seg='-'):
+  try:
+    symbol_i="-";ltp="Unable to get LTP"
+    if symbol=="BANKNIFTY" or symbol=="^NSEBANK": symbol_i="^NSEBANK";token='99926009';exch_seg='NSE'
+    elif symbol=="NIFTY" or symbol=="^NSEI": symbol_i="^NSEI";token='99926000';exch_seg='NSE'
+    elif symbol=="SENSEX" or symbol=="^BSESN": symbol_i="^BSESN";token='99919000';exch_seg='BSE'
+    if symbol in ['TCS','RELIANCE','HDFCBANK','SAIL','SBIN','TRENT']:symbol_i=symbol + ".NS"
+    if symbol_i!="-":ltp=get_yf_ltp(symbol=symbol_i,token=token,exch_seg=exch_seg)
+    if ltp=="Unable to get LTP":ltp=get_angel_ltp(symbol=symbol,token=token,exch_seg=exch_seg)
+    return ltp
+  except Exception as e:
+    logger.info(f"error in get_ltp_price: {e}")
+    return "Unable to get LTP"
+def print_ltp():
+  try:
+    data=pd.DataFrame(obj.getMarketData(mode="OHLC",exchangeTokens={"NSE": ["99926000","99926009"],"BSE": ['99919000']})['data']['fetched'])
+    data['change']=data['ltp']-data['close']
+    data.sort_values(by=['tradingSymbol'], inplace=True)
+    print_sting=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0, tzinfo=None).time()
+    for i in range(0,len(data)):
+      print_sting=f"{print_sting} {data.iloc[i]['tradingSymbol']} {int(data.iloc[i]['ltp'])}({int(data.iloc[i]['change'])})"
+    print_sting=print_sting.replace("Nifty 50","Nifty")
+    print_sting=print_sting.replace("Nifty Bank","BankNifty")
+    index_ltp_string.text(f"Index Ltp: {print_sting}")
+    return print_sting
+  except Exception as e:
+    logger.info(f"error in print_ltp: {e}")
+    return None
+print_ltp()
