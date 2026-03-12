@@ -496,7 +496,7 @@ def get_trade_info(df):
                 if trade_val in ("Buy", "Sell"):
                     df.loc[i, 'Trade'] = trade_val
                     df.loc[i, 'Trade End'] = trade_val
-                    df.loc[i, 'Indicator'] += f":{indicator_trade} ATR:{int(curr['Atr'])}"
+                    df.loc[i, 'Indicator'] = indicator_trade
                     break
     except Exception as e: pass
     return df
