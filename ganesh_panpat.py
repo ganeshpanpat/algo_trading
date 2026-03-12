@@ -591,3 +591,98 @@ def update_app_info():
     get_near_options()
     print_ltp()
     log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
+
+#Trade
+def trade_near_options(time_frame):
+  time_frame=str(time_frame)+"m"
+  near_option_list=get_near_options()
+  for i in range(0,len(near_option_list)):
+    try:
+        df=get_historical_data(symbol=near_option_list['symbol'].iloc[i],
+                               interval=time_frame,
+                               token=near_option_list['token'].iloc[i],
+                               exch_seg=near_option_list['exch_seg'].iloc[i])
+        information={'Time':str(datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)),
+                'Symbol':near_option_list['symbol'].iloc[i],
+                'Datetime':str(df['Datetime'].values[-1]),'Close':df['Close'].values[-1],
+                'Indicator':df['Indicator'].values[-1],
+                'Trade':df['Trade'].values[-1],
+                'Trade End':df['Trade End'].values[-1],
+                'Supertrend':df['Supertrend'].values[-1],
+                'Supertrend_10_2':df['Supertrend_10_2'].values[-1],
+                'RSI':df['RSI'].values[-1],
+                'VWAP':df['VWAP'].values[-1]}
+        st.session_state['options_trade_list'].append(information)
+        if df['Trade'].values[-1]=="Buy":
+          buy_option(near_option_list['token'].iloc[i],near_option_list['symbol'].iloc[i],
+                     near_option_list['exch_seg'].iloc[i],str(int(near_option_list['lotsize'].iloc[i])),str(0),
+                     indicator_strategy=df['Indicator'].values[-1])
+        log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
+        time.sleep(1)
+    except Exception as e:
+      print(f" Error in trade_near_options {e}")
+def index_trade(idx_symbol,interval="5m",token="-",exch_seg="NSE",expiry="-"):
+  try:
+    fut_data=get_historical_data(symbol=idx_symbol,interval=interval,token=token,exch_seg=exch_seg,candle_type="NORMAL")
+    if fut_data is None: return None
+    trade=str(fut_data['Trade'].values[-1])
+    if trade!="-":
+      indicator_strategy=f"{fut_data['Indicator'].values[-1]}"
+      indexLtp=fut_data['Close'].values[-1]
+      if trade=="Buy":ce_pe="CE"
+      else:ce_pe="PE"
+      strike_symbol=getTokenInfo(idx_symbol=idx_symbol,strike_price=indexLtp,ce_pe=ce_pe,expiry=expiry)
+
+      buy_option(strike_symbol['token'],strike_symbol['symbol'],
+                     strike_symbol['exch_seg'],str(int(strike_symbol['lotsize'])),str(0),
+                     indicator_strategy=indicator_strategy)
+    information={'Time':str(datetime.datetime.now(tz=gettz('Asia/Kolkata')).time().replace(microsecond=0)),
+                'Symbol':idx_symbol,
+                'Datetime':str(fut_data['Datetime'].values[-1]),'Close':fut_data['Close'].values[-1],
+                'Indicator':fut_data['Indicator'].values[-1],
+                'Trade':trade,
+                'Trade End':fut_data['Trade End'].values[-1],
+                'Supertrend':fut_data['Supertrend'].values[-1],
+                'Supertrend_10_2':fut_data['Supertrend_10_2'].values[-1],
+                'RSI':fut_data['RSI'].values[-1],
+                'VWAP':fut_data['VWAP'].values[-1]}
+    st.session_state['options_trade_list'].append(information)
+    log_holder.dataframe(st.session_state['options_trade_list'],hide_index=True)
+  except Exception as e:
+    logger.info(f"error in index_trade: {e}")
+
+#Loop
+def sub_loop_code(now_time):
+    if (now_time.minute%5==0 and "IDX:5M" in time_frame_interval):
+        st.session_state['options_trade_list']=[]
+        #index_trade(idx_symbol="BANKNIFTY",interval="5m",token="-",exch_seg="NSE",expiry="-")
+        index_trade(idx_symbol="NIFTY",interval="5m",token="-",exch_seg="NSE",expiry="-")
+        index_trade(idx_symbol="SENSEX",interval="5m",token="-",exch_seg="BSE",expiry="-")
+        trade_near_options(5)
+    if (now_time.minute%15==0 and "IDX:15M" in time_frame_interval):
+        #index_trade(idx_symbol="BANKNIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
+        index_trade(idx_symbol="NIFTY",interval="15m",token="-",exch_seg="NSE",expiry="-")
+        index_trade(idx_symbol="SENSEX",interval="15m",token="-",exch_seg="BSE",expiry="-")
+def loop_code():
+    if algo_state:
+        now = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
+        marketclose = now.replace(hour=16, minute=55, second=0, microsecond=0)
+        marketopen = now.replace(hour=0, minute=5, second=0, microsecond=0)
+        while now < marketclose and  now  > marketopen:
+            try:
+                now_time=datetime.datetime.now(tz=gettz('Asia/Kolkata'))
+                sub_loop_code(now_time)
+                update_app_info()
+            except:
+                pass
+            st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
+            login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
+            time.sleep(60-datetime.datetime.now().second)
+
+update_app_info()
+if __name__ == "__main__":
+  try:
+    loop_code()
+  except Exception as e:
+    st.error(f"An error occurred: {e}")
+    st.experimental_rerun()
