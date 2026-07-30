@@ -36,7 +36,7 @@ login_details=st.empty()
 login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']}")
 index_ltp_string=st.empty()
 index_ltp_string.text(f"Index Ltp: ")
-user='Ganesh'; username = 'G93179'; pwd = '4789'; apikey = 'Rz6IiOsd'; token='U4EAZJ3L44CNJHNUZ56R22TPKI'
+user='Ganesh'; username = 'G93179'; pwd = '1987'; apikey = 'Rz6IiOsd'; token='U4EAZJ3L44CNJHNUZ56R22TPKI'
 obj = SmartConnect(apikey)
 totp = pyotp.TOTP(token).now()
 correlation_id = "abcde"
