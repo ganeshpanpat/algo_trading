@@ -688,6 +688,7 @@ def loop_code():
       st.session_state['last_check']=datetime.datetime.now(tz=gettz('Asia/Kolkata')).replace(microsecond=0).time()
       login_details.text(f"Welcome:{st.session_state['Logged_in']} Login:{st.session_state['login_time']} Last Check:{st.session_state['last_check']} Market Status:{st.session_state['market_status']}")
       while algo_state:
+        now = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
         if now < marketclose and now > marketopen :
           try:
             now = datetime.datetime.now(tz=gettz('Asia/Kolkata'))
