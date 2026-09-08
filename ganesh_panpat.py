@@ -8,7 +8,13 @@ from SmartApi import SmartConnect
 from logzero import logger
 import pyotp
 import warnings
-
+st.set_page_config(page_title="Algo App",layout="wide",initial_sidebar_state="expanded",)
+st.markdown("""
+  <style>
+    .block-container {padding-top: 0rem;padding-bottom: 0rem;padding-left: 2rem;padding-right: 2rem;}
+  </style>
+  """, unsafe_allow_html=True)
+st.text("Welcome To Algo Trading")
 import socket
 def get_local_ip():
     # Get the system's hostname
